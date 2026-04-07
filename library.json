@@ -1,0 +1,25 @@
+{
+  "name": "lumalink-json",
+  "version": "0.1.0",
+  "description": "Spec-oriented JSON serialization and deserialization helpers on top of ArduinoJson.",
+  "keywords": [
+    "json",
+    "serialization",
+    "deserialization",
+    "arduinojson",
+    "expected"
+  ],
+  "frameworks": "*",
+  "platforms": "*",
+  "dependencies": [
+    {
+      "owner": "bblanchon",
+      "name": "ArduinoJson",
+      "version": "^7.0.0"
+    }
+  ],
+  "build": {
+    "includeDir": "src",
+    "srcDir": "src"
+  }
+}
