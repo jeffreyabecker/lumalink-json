@@ -14,6 +14,7 @@ int main() {
     run_phase4_validator_tests();
     run_phase5_error_tests();
     run_phase6_backend_tests();
+    run_phase9_round_trip_tests();
     run_phase8_reflection_tests();
     return UNITY_END();
 }

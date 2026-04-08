@@ -125,12 +125,12 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 9: Serialization Round-Trip Coverage
 
-- RT-01 [todo] : Add round-trip tests for scalar nodes.
-- RT-02 [todo] : Add round-trip tests for nested objects.
-- RT-03 [todo] : Add round-trip tests for arrays, tuples, and optionals.
-- RT-04 [todo] : Add round-trip tests for enums through canonical string tokens.
-- RT-05 [todo] : Add round-trip tests for `one_of` with each supported alternative.
-- RT-06 [todo] : Add round-trip tests that combine validators, enum mapping, and nested context.
+- RT-01 [done] : Add round-trip tests for scalar nodes.
+- RT-02 [done] : Add round-trip tests for nested objects.
+- RT-03 [done] : Add round-trip tests for arrays, tuples, and optionals.
+- RT-04 [done] : Add round-trip tests for enums through canonical string tokens.
+- RT-05 [done] : Add round-trip tests for `one_of` with each supported alternative.
+- RT-06 [done] : Add round-trip tests that combine validators, enum mapping, and nested context.
 
 ## Phase 10: JSON Schema Emission Coverage
 
