@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -88,7 +89,8 @@ inline void assert_error_context_entry(
     const size_t index,
     const node_kind expected_kind,
     const std::string_view expected_field_key = {},
-    const std::string_view expected_logical_name = {}) {
+    const std::string_view expected_logical_name = {},
+    const size_t expected_index = std::numeric_limits<size_t>::max()) {
     TEST_ASSERT_TRUE(index < actual.context.size);
 
     const auto& entry = actual.context.entries[index];
@@ -99,6 +101,13 @@ inline void assert_error_context_entry(
     TEST_ASSERT_EQUAL_UINT32(
         static_cast<uint32_t>(expected_logical_name.size()),
         static_cast<uint32_t>(entry.logical_name.size()));
+
+    if (expected_index == std::numeric_limits<size_t>::max()) {
+        TEST_ASSERT_FALSE(entry.has_index);
+    } else {
+        TEST_ASSERT_TRUE(entry.has_index);
+        TEST_ASSERT_EQUAL_UINT32(static_cast<uint32_t>(expected_index), static_cast<uint32_t>(entry.index));
+    }
 
     if (!expected_field_key.empty()) {
         TEST_ASSERT_EQUAL_INT(

@@ -52,22 +52,22 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 3: Composite Node Coverage
 
-- CMP-01 [todo] : Add `field` and `object` tests for required-field decode success.
-- CMP-02 [todo] : Add `field` and `object` tests for `missing_field` failures.
-- CMP-03 [todo] : Add `field` and `object` tests for nested field context propagation.
-- CMP-04 [todo] : Add `object` tests for deterministic declaration-order traversal.
-- CMP-05 [todo] : Add `optional` node tests for present values.
-- CMP-06 [todo] : Add `optional` node tests for missing fields.
-- CMP-07 [todo] : Add `optional` node tests for explicit JSON `null` values.
-- CMP-08 [todo] : Add `array_of` tests for homogeneous container decode and encode.
-- CMP-09 [todo] : Add `array_of` tests for per-element type failures with index-aware context.
-- CMP-10 [todo] : Add `array_of` tests for `min_max_elements` behavior.
-- CMP-11 [todo] : Add `tuple` tests for exact positional decode and encode.
-- CMP-12 [todo] : Add `tuple` tests for `array_size_mismatch` failures.
-- CMP-13 [todo] : Add `tuple` tests for per-position type mismatch context.
-- CMP-14 [todo] : Add `one_of` tests for ordered alternative selection with first successful match.
-- CMP-15 [todo] : Add `one_of` tests for all-alternatives-failed error reporting.
-- CMP-16 [todo] : Add `one_of` tests that lock down the supported ambiguity behavior.
+- CMP-01 [done] : Add `field` and `object` tests for required-field decode success.
+- CMP-02 [done] : Add `field` and `object` tests for `missing_field` failures.
+- CMP-03 [done] : Add `field` and `object` tests for nested field context propagation.
+- CMP-04 [done] : Add `object` tests for deterministic declaration-order traversal.
+- CMP-05 [done] : Add `optional` node tests for present values.
+- CMP-06 [done] : Add `optional` node tests for missing fields.
+- CMP-07 [done] : Add `optional` node tests for explicit JSON `null` values.
+- CMP-08 [done] : Add `array_of` tests for homogeneous container decode and encode.
+- CMP-09 [done] : Add `array_of` tests for per-element type failures with index-aware context.
+- CMP-10 [done] : Add `array_of` tests for `min_max_elements` behavior.
+- CMP-11 [done] : Add `tuple` tests for exact positional decode and encode.
+- CMP-12 [done] : Add `tuple` tests for `array_size_mismatch` failures.
+- CMP-13 [done] : Add `tuple` tests for per-position type mismatch context.
+- CMP-14 [done] : Add `one_of` tests for ordered alternative selection with first successful match.
+- CMP-15 [done] : Add `one_of` tests for all-alternatives-failed error reporting.
+- CMP-16 [done] : Add `one_of` tests that lock down the supported ambiguity behavior.
 
 ## Phase 4: Validator And Option Coverage
 
@@ -114,8 +114,8 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 8: Reflection And Binding Coverage
 
-- RFL-01 [todo] : Add runtime tests for `pfr`-backed object binding on supported simple aggregates.
-- RFL-02 [todo] : Add tests proving spec field keys, not struct field names, drive object mapping.
+- RFL-01 [done] : Add runtime tests for `pfr`-backed object binding on supported simple aggregates.
+- RFL-02 [done] : Add tests proving spec field keys, not struct field names, drive object mapping.
 - RFL-03 [todo] : Add tests for explicit field-trait fallback on types that are not auto-reflectable.
 - RFL-04 [todo] : Add compile-fail tests for non-aggregate model types on the auto-reflection path.
 - RFL-05 [todo] : Add compile-fail tests for polymorphic model types on the auto-reflection path.

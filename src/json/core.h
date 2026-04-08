@@ -72,6 +72,8 @@ struct error_context_entry {
     node_kind kind{node_kind::unknown};
     std::string_view logical_name{};
     std::string_view field_key{};
+    size_t index{0};
+    bool has_index{false};
 };
 
 inline constexpr size_t error_context_capacity = 8;

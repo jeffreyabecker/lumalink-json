@@ -27,6 +27,42 @@ struct enum_string : detail::scalar_option_contract<Options...> {
 template <typename... Options>
 struct any : detail::scalar_option_contract<Options...> {};
 
+template <fixed_string Key, typename ValueSpec, typename... Options>
+struct field : detail::field_option_contract<Options...> {
+    using value_spec = ValueSpec;
+
+    [[nodiscard]] static constexpr std::string_view key() noexcept {
+        return Key.view();
+    }
+
+    [[nodiscard]] static constexpr const char* key_c_str() noexcept {
+        return Key.value;
+    }
+};
+
+template <typename... Fields>
+struct object {};
+
+template <typename ElementSpec, typename... Options>
+struct array_of : detail::composite_option_contract<Options...> {
+    using element_spec = ElementSpec;
+};
+
+template <typename... Specs>
+struct tuple {
+    static_assert(sizeof...(Specs) > 0U, "spec::tuple requires at least one child spec");
+};
+
+template <typename ValueSpec>
+struct optional {
+    using value_spec = ValueSpec;
+};
+
+template <typename... Specs>
+struct one_of {
+    static_assert(sizeof...(Specs) > 0U, "spec::one_of requires at least one child spec");
+};
+
 } // namespace lumalink::json::spec
 
 namespace lumalink::json::detail {
@@ -39,6 +75,7 @@ struct spec_descriptor<spec::null<Options...>> {
     static constexpr node_kind kind = node_kind::null_value;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
+    using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
 };
 
@@ -47,6 +84,7 @@ struct spec_descriptor<spec::boolean<Options...>> {
     static constexpr node_kind kind = node_kind::boolean;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
+    using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
 };
 
@@ -55,6 +93,7 @@ struct spec_descriptor<spec::integer<Options...>> {
     static constexpr node_kind kind = node_kind::integer;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
+    using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
 };
 
@@ -63,6 +102,7 @@ struct spec_descriptor<spec::number<Options...>> {
     static constexpr node_kind kind = node_kind::number;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
+    using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
 };
 
@@ -71,6 +111,7 @@ struct spec_descriptor<spec::string<Options...>> {
     static constexpr node_kind kind = node_kind::string;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
+    using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
 };
 
@@ -79,6 +120,7 @@ struct spec_descriptor<spec::enum_string<Enum, Options...>> {
     static constexpr node_kind kind = node_kind::enum_string;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
+    using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
 };
 
@@ -87,7 +129,62 @@ struct spec_descriptor<spec::any<Options...>> {
     static constexpr node_kind kind = node_kind::any;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
+    using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+};
+
+template <fixed_string Key, typename ValueSpec, typename... Options>
+struct spec_descriptor<spec::field<Key, ValueSpec, Options...>> {
+    static constexpr node_kind kind = node_kind::field;
+    using name_option = typename first_name_option<Options...>::type;
+    using min_max_value_option = void;
+    using min_max_elements_option = void;
+    using pattern_option = void;
+};
+
+template <typename... Fields>
+struct spec_descriptor<spec::object<Fields...>> {
+    static constexpr node_kind kind = node_kind::object;
+    using name_option = void;
+    using min_max_value_option = void;
+    using min_max_elements_option = void;
+    using pattern_option = void;
+};
+
+template <typename ElementSpec, typename... Options>
+struct spec_descriptor<spec::array_of<ElementSpec, Options...>> {
+    static constexpr node_kind kind = node_kind::array_of;
+    using name_option = typename first_name_option<Options...>::type;
+    using min_max_value_option = void;
+    using min_max_elements_option = typename first_min_max_elements_option<Options...>::type;
+    using pattern_option = void;
+};
+
+template <typename... Specs>
+struct spec_descriptor<spec::tuple<Specs...>> {
+    static constexpr node_kind kind = node_kind::tuple;
+    using name_option = void;
+    using min_max_value_option = void;
+    using min_max_elements_option = void;
+    using pattern_option = void;
+};
+
+template <typename ValueSpec>
+struct spec_descriptor<spec::optional<ValueSpec>> {
+    static constexpr node_kind kind = node_kind::optional;
+    using name_option = void;
+    using min_max_value_option = void;
+    using min_max_elements_option = void;
+    using pattern_option = void;
+};
+
+template <typename... Specs>
+struct spec_descriptor<spec::one_of<Specs...>> {
+    static constexpr node_kind kind = node_kind::one_of;
+    using name_option = void;
+    using min_max_value_option = void;
+    using min_max_elements_option = void;
+    using pattern_option = void;
 };
 
 } // namespace lumalink::json::detail
