@@ -7,18 +7,18 @@
 #define PFR_FUNCTIONS_FOR_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "detail/config.hpp"
 
 #if !defined(PFR_USE_MODULES) || defined(PFR_INTERFACE_UNIT)
-#include <pfr/ops_fields.hpp>
-#include <pfr/io_fields.hpp>
+#include "ops_fields.hpp"
+#include "io_fields.hpp"
 #endif
 
 /// \file pfr/functions_for.hpp
 /// Contains PFR_FUNCTIONS_FOR macro that defined comparison and stream operators for T along with hash_value function.
 /// \b Example:
 /// \code
-///     #include <pfr/functions_for.hpp>
+///     #include "functions_for.hpp"
 ///
 ///     namespace my_namespace {
 ///         struct my_struct {      // No operators defined for that structure
@@ -37,7 +37,7 @@
 ///
 /// \b Example:
 /// \code
-///     #include <pfr/functions_for.hpp>
+///     #include "functions_for.hpp"
 ///     struct comparable_struct {      // No operators defined for that structure
 ///         int i; short s; char data[7]; bool bl; int a,b,c,d,e,f;
 ///     };

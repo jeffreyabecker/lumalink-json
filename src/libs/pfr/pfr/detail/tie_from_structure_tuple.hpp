@@ -8,13 +8,13 @@
 #define PFR_DETAIL_TIE_FROM_STRUCTURE_TUPLE_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
-#include <pfr/detail/core.hpp>
+#include "core.hpp"
 
-#include <pfr/detail/stdtuple.hpp>
-#include <pfr/tuple_size.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
+#include "stdtuple.hpp"
+#include "../tuple_size.hpp"
+#include "make_integer_sequence.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <tuple>

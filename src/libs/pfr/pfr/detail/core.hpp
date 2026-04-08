@@ -7,7 +7,7 @@
 #define PFR_DETAIL_CORE_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
 // Each core provides `pfr::detail::tie_as_tuple` and
 // `pfr::detail::for_each_field_dispatcher` functions.

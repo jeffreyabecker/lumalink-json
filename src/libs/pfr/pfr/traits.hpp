@@ -7,11 +7,11 @@
 #define PFR_TRAITS_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "detail/config.hpp"
 
 #if !defined(PFR_USE_MODULES) || defined(PFR_INTERFACE_UNIT)
 
-#include <pfr/detail/possible_reflectable.hpp>
+#include "detail/possible_reflectable.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <type_traits>

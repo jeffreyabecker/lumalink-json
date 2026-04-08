@@ -7,12 +7,12 @@
 #define PFR_IO_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "detail/config.hpp"
 
 #if !defined(PFR_USE_MODULES) || defined(PFR_INTERFACE_UNIT)
 
-#include <pfr/detail/detectors.hpp>
-#include <pfr/io_fields.hpp>
+#include "detail/detectors.hpp"
+#include "io_fields.hpp"
 
 /// \file pfr/io.hpp
 /// Contains IO stream manipulator \forcedlink{io} for types.
@@ -20,7 +20,7 @@
 ///
 /// \b Example:
 /// \code
-///     #include <pfr/io.hpp>
+///     #include "io.hpp"
 ///     struct comparable_struct {      // No operators defined for that structure
 ///         int i; short s; char data[7]; bool bl; int a,b,c,d,e,f;
 ///     };

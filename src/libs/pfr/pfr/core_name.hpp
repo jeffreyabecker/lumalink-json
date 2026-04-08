@@ -12,17 +12,17 @@
 #define PFR_CORE_NAME_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "detail/config.hpp"
 
 #if !defined(PFR_USE_MODULES) || defined(PFR_INTERFACE_UNIT)
 
-#include <pfr/detail/core_name.hpp>
+#include "detail/core_name.hpp"
 
-#include <pfr/detail/sequence_tuple.hpp>
-#include <pfr/detail/stdarray.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
+#include "detail/sequence_tuple.hpp"
+#include "detail/stdarray.hpp"
+#include "detail/make_integer_sequence.hpp"
 
-#include <pfr/tuple_size.hpp>
+#include "tuple_size.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <cstddef> // for std::size_t

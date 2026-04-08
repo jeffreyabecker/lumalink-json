@@ -7,8 +7,8 @@
 #define PFR_DETAIL_SEQUENCE_TUPLE_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
+#include "config.hpp"
+#include "make_integer_sequence.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <utility>      // metaprogramming stuff

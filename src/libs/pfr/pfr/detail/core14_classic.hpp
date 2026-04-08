@@ -7,16 +7,16 @@
 #define PFR_DETAIL_CORE14_CLASSIC_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
-#include <pfr/detail/sequence_tuple.hpp>
-#include <pfr/detail/offset_based_getter.hpp>
-#include <pfr/detail/fields_count.hpp>
-#include <pfr/detail/make_flat_tuple_of_references.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
-#include <pfr/detail/size_array.hpp>
-#include <pfr/detail/size_t_.hpp>
-#include <pfr/detail/rvalue_t.hpp>
+#include "sequence_tuple.hpp"
+#include "offset_based_getter.hpp"
+#include "fields_count.hpp"
+#include "make_flat_tuple_of_references.hpp"
+#include "make_integer_sequence.hpp"
+#include "size_array.hpp"
+#include "size_t_.hpp"
+#include "rvalue_t.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <type_traits>

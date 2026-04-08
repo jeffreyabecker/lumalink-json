@@ -8,7 +8,7 @@
 #define PFR_DETAIL_CONFIG_HPP
 #pragma once
 
-#include <pfr/config.hpp>
+#include "../config.hpp"
 
 #if !PFR_ENABLED
 

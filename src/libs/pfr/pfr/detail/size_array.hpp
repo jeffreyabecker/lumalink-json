@@ -7,7 +7,7 @@
 #define PFR_DETAIL_SIZE_ARRAY_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <cstddef>

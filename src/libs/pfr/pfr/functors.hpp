@@ -7,13 +7,13 @@
 #define PFR_FUNCTORS_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "detail/config.hpp"
 
 #if !defined(PFR_USE_MODULES) || defined(PFR_INTERFACE_UNIT)
 
-#include <pfr/ops.hpp>
+#include "ops.hpp"
 
-#include <pfr/detail/functional.hpp>
+#include "detail/functional.hpp"
 
 /// \file pfr/functors.hpp
 /// Contains functors that are close to the Standard Library ones.
@@ -21,7 +21,7 @@
 ///
 /// \b Example:
 /// \code
-///     #include <pfr/functors.hpp>
+///     #include "functors.hpp"
 ///     struct my_struct {      // No operators defined for that structure
 ///         int i; short s; char data[7]; bool bl; int a,b,c,d,e,f;
 ///     };

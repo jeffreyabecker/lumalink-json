@@ -7,12 +7,12 @@
 #define PFR_DETAIL_FOR_EACH_FIELD_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
-#include <pfr/detail/core.hpp>
-#include <pfr/detail/fields_count.hpp>
-#include <pfr/detail/for_each_field_impl.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
+#include "core.hpp"
+#include "fields_count.hpp"
+#include "for_each_field_impl.hpp"
+#include "make_integer_sequence.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <type_traits>      // metaprogramming stuff

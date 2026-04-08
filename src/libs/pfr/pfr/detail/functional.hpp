@@ -7,9 +7,9 @@
 #define PFR_DETAIL_FUNCTIONAL_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
-#include <pfr/detail/sequence_tuple.hpp>
+#include "sequence_tuple.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <cstdint>

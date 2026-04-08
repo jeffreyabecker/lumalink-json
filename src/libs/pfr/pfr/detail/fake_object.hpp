@@ -13,7 +13,7 @@
 #define PFR_DETAIL_FAKE_OBJECT_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
 #ifdef __clang__
 #   pragma clang diagnostic push

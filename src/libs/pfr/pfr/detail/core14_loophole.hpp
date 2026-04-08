@@ -22,15 +22,15 @@
 #define PFR_DETAIL_CORE14_LOOPHOLE_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
-#include <pfr/detail/offset_based_getter.hpp>
-#include <pfr/detail/fields_count.hpp>
-#include <pfr/detail/make_flat_tuple_of_references.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
-#include <pfr/detail/sequence_tuple.hpp>
-#include <pfr/detail/rvalue_t.hpp>
-#include <pfr/detail/unsafe_declval.hpp>
+#include "offset_based_getter.hpp"
+#include "fields_count.hpp"
+#include "make_flat_tuple_of_references.hpp"
+#include "make_integer_sequence.hpp"
+#include "sequence_tuple.hpp"
+#include "rvalue_t.hpp"
+#include "unsafe_declval.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <utility>

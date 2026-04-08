@@ -8,11 +8,11 @@
 #define PFR_DETAIL_OFFSET_BASED_GETTER_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
-#include <pfr/detail/sequence_tuple.hpp>
-#include <pfr/detail/rvalue_t.hpp>
-#include <pfr/detail/size_t_.hpp>
+#include "sequence_tuple.hpp"
+#include "rvalue_t.hpp"
+#include "size_t_.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <type_traits>

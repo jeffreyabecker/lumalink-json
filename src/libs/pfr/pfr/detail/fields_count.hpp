@@ -7,10 +7,10 @@
 #define PFR_DETAIL_FIELDS_COUNT_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
-#include <pfr/detail/size_t_.hpp>
-#include <pfr/detail/unsafe_declval.hpp>
+#include "config.hpp"
+#include "make_integer_sequence.hpp"
+#include "size_t_.hpp"
+#include "unsafe_declval.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <limits>

@@ -12,7 +12,7 @@
 #define PFR_DETAIL_CORE_NAME_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
 // Each core_name provides `pfr::detail::get_name` and
 // `pfr::detail::tie_as_names_tuple` functions.
@@ -20,9 +20,9 @@
 // The whole functional of extracting field's names is build on top of those
 // two functions.
 #if PFR_CORE_NAME_ENABLED
-#include <pfr/detail/core_name20_static.hpp>
+#include "core_name20_static.hpp"
 #else
-#include <pfr/detail/core_name14_disabled.hpp>
+#include "core_name14_disabled.hpp"
 #endif
 
 #endif // PFR_DETAIL_CORE_NAME_HPP

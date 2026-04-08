@@ -7,8 +7,8 @@
 #define PFR_DETAIL_POSSIBLE_REFLECTABLE_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
-#include <pfr/traits_fwd.hpp>
+#include "config.hpp"
+#include "../traits_fwd.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <type_traits> // for std::is_aggregate

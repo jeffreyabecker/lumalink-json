@@ -7,19 +7,19 @@
 #define PFR_OPS_FIELDS_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "detail/config.hpp"
 
 #if !defined(PFR_USE_MODULES) || defined(PFR_INTERFACE_UNIT)
 
-#include <pfr/core.hpp>
-#include <pfr/detail/functional.hpp>
+#include "core.hpp"
+#include "detail/functional.hpp"
 
 /// \file pfr/ops_fields.hpp
 /// Contains field-by-fields comparison and hash functions.
 ///
 /// \b Example:
 /// \code
-///     #include <pfr/ops_fields.hpp>
+///     #include "ops_fields.hpp"
 ///     struct comparable_struct {      // No operators defined for that structure
 ///         int i; short s;
 ///     };

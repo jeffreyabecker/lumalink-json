@@ -7,11 +7,11 @@
 #define PFR_DETAIL_MAKE_FLAT_TUPLE_OF_REFERENCES_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
-#include <pfr/detail/sequence_tuple.hpp>
-#include <pfr/detail/rvalue_t.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
+#include "sequence_tuple.hpp"
+#include "rvalue_t.hpp"
+#include "make_integer_sequence.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <utility>      // metaprogramming stuff

@@ -12,8 +12,8 @@
 #define PFR_DETAIL_CORE_NAME14_DISABLED_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
-#include <pfr/detail/sequence_tuple.hpp>
+#include "config.hpp"
+#include "sequence_tuple.hpp"
 
 namespace pfr { namespace detail {
 

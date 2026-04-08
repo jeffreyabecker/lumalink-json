@@ -8,15 +8,15 @@
 #define PFR_IO_FIELDS_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "detail/config.hpp"
 
 #if !defined(PFR_USE_MODULES) || defined(PFR_INTERFACE_UNIT)
 
-#include <pfr/detail/core.hpp>
-#include <pfr/detail/sequence_tuple.hpp>
-#include <pfr/detail/io.hpp>
-#include <pfr/detail/make_integer_sequence.hpp>
-#include <pfr/tuple_size.hpp>
+#include "detail/core.hpp"
+#include "detail/sequence_tuple.hpp"
+#include "detail/io.hpp"
+#include "detail/make_integer_sequence.hpp"
+#include "tuple_size.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <type_traits>

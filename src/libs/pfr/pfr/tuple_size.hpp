@@ -8,12 +8,12 @@
 #define PFR_TUPLE_SIZE_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "detail/config.hpp"
 
 #if !defined(PFR_USE_MODULES) || defined(PFR_INTERFACE_UNIT)
 
-#include <pfr/detail/sequence_tuple.hpp>
-#include <pfr/detail/fields_count.hpp>
+#include "detail/sequence_tuple.hpp"
+#include "detail/fields_count.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <type_traits>

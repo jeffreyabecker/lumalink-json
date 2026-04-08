@@ -7,7 +7,7 @@
 #define PFR_DETAIL_DETECTORS_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <functional>

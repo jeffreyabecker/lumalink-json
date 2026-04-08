@@ -14,13 +14,13 @@
 #define PFR_DETAIL_CORE17_GENERATED_HPP
 #pragma once
 
-#include <pfr/detail/config.hpp>
+#include "config.hpp"
 #if !PFR_USE_CPP17
 #   error C++17 is required for this header.
 #endif
 
-#include <pfr/detail/sequence_tuple.hpp>
-#include <pfr/detail/size_t_.hpp>
+#include "sequence_tuple.hpp"
+#include "size_t_.hpp"
 
 #if !defined(PFR_INTERFACE_UNIT)
 #include <type_traits> // for std::conditional_t, std::is_reference
