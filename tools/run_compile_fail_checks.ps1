@@ -1,8 +1,17 @@
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $casesRoot = Join-Path $repoRoot 'test\compile_fail'
+$arduinoJsonHeader = Get-ChildItem -Path (Join-Path $repoRoot '.pio\libdeps') -Recurse -Filter 'ArduinoJson.h' -ErrorAction SilentlyContinue |
+    Select-Object -First 1
 $compilerCandidates = @('g++', 'clang++', 'c++')
 $compiler = $null
+
+if ($null -eq $arduinoJsonHeader) {
+    throw 'ArduinoJson dependency headers were not found under .pio\libdeps. Run the native test environment once before the compile-fail harness.'
+}
+
+$arduinoJsonInclude = Split-Path -Parent $arduinoJsonHeader.FullName
+$arduinoJsonSrcInclude = Join-Path $arduinoJsonInclude 'src'
 
 foreach ($candidate in $compilerCandidates) {
     $command = Get-Command $candidate -ErrorAction SilentlyContinue
@@ -44,6 +53,8 @@ foreach ($caseFile in $caseFiles) {
         '-Isrc'
         '-Isrc/libs/pfr'
         '-Itest/compile_fail'
+        "-I$arduinoJsonInclude"
+        "-I$arduinoJsonSrcInclude"
         '-c'
         $caseFile.FullName
         '-o'

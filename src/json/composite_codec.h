@@ -101,27 +101,55 @@ struct is_append_container<
 template <typename T>
 inline constexpr bool is_append_container_v = is_append_container<T>::value;
 
-template <typename T, typename = void>
-struct pfr_arity : std::integral_constant<size_t, 0> {};
-
 template <typename T>
-struct pfr_arity<T, std::void_t<decltype(pfr::tuple_size_v<remove_cvref_t<T>>)>>
-    : std::integral_constant<size_t, pfr::tuple_size_v<remove_cvref_t<T>>> {};
+using model_type_t = remove_cvref_t<T>;
 
-template <typename T>
-inline constexpr size_t pfr_arity_v = pfr_arity<T>::value;
+template <typename Model, size_t FieldCount, typename Enable = void>
+struct object_binding_contract {
+    static_assert(
+        std::is_class_v<model_type_t<Model>>,
+        "spec::object auto-binding requires a struct or class model type");
+    static_assert(
+        std::is_aggregate_v<model_type_t<Model>>,
+        "spec::object auto-binding requires an aggregate model type or explicit field trait registration");
+};
 
-template <typename T, typename = void>
-struct is_pfr_bindable : std::false_type {};
+template <typename Model, size_t FieldCount>
+struct object_binding_contract<Model, FieldCount, std::enable_if_t<std::is_union_v<model_type_t<Model>>>> {
+    static_assert(
+        !std::is_union_v<model_type_t<Model>>,
+        "spec::object auto-binding does not support unions; use explicit field trait registration");
+};
 
-template <typename T>
-struct is_pfr_bindable<T, std::void_t<decltype(pfr::tuple_size_v<remove_cvref_t<T>>)>>
-    : std::bool_constant<
-          std::is_aggregate_v<remove_cvref_t<T>> && !std::is_union_v<remove_cvref_t<T>> &&
-          !std::is_polymorphic_v<remove_cvref_t<T>>> {};
+template <typename Model, size_t FieldCount>
+struct object_binding_contract<
+    Model,
+    FieldCount,
+    std::enable_if_t<!std::is_union_v<model_type_t<Model>> && std::is_polymorphic_v<model_type_t<Model>>>> {
+    static_assert(
+        !std::is_polymorphic_v<model_type_t<Model>>,
+        "spec::object auto-binding does not support polymorphic types; use explicit field trait registration");
+};
 
-template <typename T>
-inline constexpr bool is_pfr_bindable_v = is_pfr_bindable<T>::value;
+template <typename Model, size_t FieldCount>
+struct object_binding_contract<
+    Model,
+    FieldCount,
+    std::enable_if_t<
+        !std::is_union_v<model_type_t<Model>> && !std::is_polymorphic_v<model_type_t<Model>> &&
+        std::is_aggregate_v<model_type_t<Model>>>> {
+    static_assert(FieldCount <= pfr_arity_limit, "object auto-binding exceeds the supported PFR arity limit");
+
+    static constexpr size_t arity = pfr::tuple_size_v<model_type_t<Model>>;
+
+    static_assert(arity <= pfr_arity_limit, "object auto-binding exceeds the supported PFR arity limit");
+    static_assert(arity == FieldCount, "object field count must match the bound aggregate arity");
+};
+
+template <typename Model, size_t FieldCount>
+constexpr void validate_object_binding_target() noexcept {
+    (void)sizeof(object_binding_contract<Model, FieldCount>);
+}
 
 template <size_t Index, typename T>
 using pfr_field_t = remove_cvref_t<decltype(pfr::get<Index>(std::declval<T&>()))>;
@@ -356,14 +384,9 @@ expected_void encode_one_of_alternatives(const Variant& value, JsonVariant desti
 namespace lumalink::json {
 
 template <typename... Fields, typename T>
-struct decoder<spec::object<Fields...>, T, std::enable_if_t<detail::is_pfr_bindable_v<T>>> {
+struct decoder<spec::object<Fields...>, T> {
     static expected<T> decode(const JsonVariantConst source, const decode_state& state) {
-        static_assert(
-            detail::pfr_arity_v<T> <= detail::pfr_arity_limit,
-            "object auto-binding exceeds the supported PFR arity limit");
-        static_assert(
-            detail::pfr_arity_v<T> == sizeof...(Fields),
-            "object field count must match the bound aggregate arity");
+        detail::validate_object_binding_target<T, sizeof...(Fields)>();
 
         if (!source.is<JsonObjectConst>()) {
             return std::unexpected(detail::make_error<spec::object<Fields...>>(
@@ -383,14 +406,9 @@ struct decoder<spec::object<Fields...>, T, std::enable_if_t<detail::is_pfr_binda
 };
 
 template <typename... Fields, typename T>
-struct encoder<spec::object<Fields...>, T, std::enable_if_t<detail::is_pfr_bindable_v<T>>> {
+struct encoder<spec::object<Fields...>, T> {
     static expected_void encode(const T& value, JsonVariant destination, const encode_state& state) {
-        static_assert(
-            detail::pfr_arity_v<T> <= detail::pfr_arity_limit,
-            "object auto-binding exceeds the supported PFR arity limit");
-        static_assert(
-            detail::pfr_arity_v<T> == sizeof...(Fields),
-            "object field count must match the bound aggregate arity");
+        detail::validate_object_binding_target<T, sizeof...(Fields)>();
 
         JsonObject object_destination = destination.to<JsonObject>();
         auto field_result = detail::encode_object_fields<0U, T, Fields...>(value, object_destination, state);
