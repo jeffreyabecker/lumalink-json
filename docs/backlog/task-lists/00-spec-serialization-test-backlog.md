@@ -23,12 +23,12 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 1: Harness Foundation
 
-- TST-01 [todo] : Add a reusable native Unity fixture for decode and encode tests.
-- TST-02 [todo] : Add assertion helpers for `std::expected` success and failure results.
-- TST-03 [todo] : Add assertion helpers for `json::error_code` and error-context contents.
-- TST-04 [todo] : Add a round-trip helper that encodes a model, reparses it, and decodes it back.
-- TST-05 [todo] : Add a compile-only test harness for negative template and `static_assert` cases.
-- TST-06 [todo] : Define naming conventions for runtime suites by spec node and behavior category.
+- TST-01 [done] : Add a reusable native Unity fixture for decode and encode tests.
+- TST-02 [done] : Add assertion helpers for `std::expected` success and failure results.
+- TST-03 [done] : Add assertion helpers for `json::error_code` and error-context contents.
+- TST-04 [done] : Add a round-trip helper that encodes a model, reparses it, and decodes it back.
+- TST-05 [done] : Add a compile-only test harness for negative template and `static_assert` cases.
+- TST-06 [done] : Define naming conventions for runtime suites by spec node and behavior category.
 
 ## Phase 2: Scalar Node Coverage
 

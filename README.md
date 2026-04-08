@@ -33,3 +33,15 @@ Build the native library environment:
 ```powershell
 pio run -e native_lib
 ```
+
+Run compile-fail harness checks:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/run_compile_fail_checks.ps1
+```
+
+## Test Naming Conventions
+
+- Native runtime files use `test_<phase-or-area>_<topic>.cpp`.
+- Native runtime test functions use `test_<task-id>_<behavior>()`.
+- Compile-fail cases use `<task-id>_<description>.cpp` under `test/compile_fail/`.
