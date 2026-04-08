@@ -134,12 +134,12 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 10: JSON Schema Emission Coverage
 
-- SCH-01 [todo] : Add tests for converting scalar spec nodes into JSON Schema `type` declarations in an `ArduinoJson` document.
-- SCH-02 [todo] : Add tests for converting `field` and `object` specs into JSON Schema `properties`, `required`, and declaration-order-stable output.
-- SCH-03 [todo] : Add tests for converting `optional`, `array_of`, `tuple`, and `one_of` specs into their supported JSON Schema forms.
-- SCH-04 [todo] : Add tests for converting `enum_string` mappings into JSON Schema `enum` token arrays.
-- SCH-05 [todo] : Add tests for projecting supported options such as `min_max_value`, `min_max_elements`, and `pattern` into JSON Schema keywords.
-- SCH-06 [todo] : Add tests proving schema generation writes into a caller-provided `ArduinoJson` document without requiring runtime decode or encode inputs.
+- SCH-01 [done] : Add tests for converting scalar spec nodes into JSON Schema `type` declarations in an `ArduinoJson` document.
+- SCH-02 [done] : Add tests for converting `field` and `object` specs into JSON Schema `properties`, `required`, and declaration-order-stable output.
+- SCH-03 [done] : Add tests for converting `optional`, `array_of`, `tuple`, and `one_of` specs into their supported JSON Schema forms.
+- SCH-04 [done] : Add tests for converting `enum_string` mappings into JSON Schema `enum` token arrays.
+- SCH-05 [done] : Add tests for projecting supported options such as `min_max_value`, `min_max_elements`, and `pattern` into JSON Schema keywords.
+- SCH-06 [done] : Add tests proving schema generation writes into a caller-provided `ArduinoJson` document without requiring runtime decode or encode inputs.
 
 ## Phase 11: CI And Maintenance Coverage
 

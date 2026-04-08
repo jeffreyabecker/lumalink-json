@@ -46,6 +46,8 @@ Options are typed metadata attached to nodes:
 4. min_max_value
 5. pattern
 
+For schema emission, `opts::pattern` may optionally carry a schema literal alongside the runtime predicate so the engine can project a JSON Schema `pattern` keyword.
+
 Compile-time option parsing enforces valid combinations and rejects duplicates in the same category.
 
 ## C++ value mapping

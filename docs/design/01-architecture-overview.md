@@ -25,6 +25,7 @@ lumalink-json defines a compile-time spec system for structured JSON validation 
 
 1. Public API layer
    - deserialize and serialize entry points
+   - schema generation entry point
    - decode and encode options
 2. Spec layer
    - primitive and composite spec nodes
@@ -46,6 +47,9 @@ lumalink-json defines a compile-time spec system for structured JSON validation 
 
 - serialize:
   std::expected<void, json::error> serialize<Spec>(const T& value, JsonVariant dst);
+
+- generate_schema:
+   std::expected<void, json::error> generate_schema<Spec>(JsonDocument& dst);
 
 ## Behavioral principles
 

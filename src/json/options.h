@@ -28,9 +28,13 @@ struct min_max_elements {
     static constexpr size_t max = static_cast<size_t>(Max);
 };
 
-template <auto Predicate>
+template <auto Predicate, fixed_string SchemaPattern = "">
 struct pattern {
     static constexpr auto value = Predicate;
+
+    [[nodiscard]] static constexpr std::string_view schema() noexcept {
+        return SchemaPattern.view();
+    }
 };
 
 template <auto Validator>
@@ -66,8 +70,8 @@ struct is_min_max_elements_option<opts::min_max_elements<Min, Max>> : std::true_
 template <typename Option>
 struct is_pattern_option : std::false_type {};
 
-template <auto Predicate>
-struct is_pattern_option<opts::pattern<Predicate>> : std::true_type {};
+template <auto Predicate, fixed_string SchemaPattern>
+struct is_pattern_option<opts::pattern<Predicate, SchemaPattern>> : std::true_type {};
 
 template <typename Option>
 struct is_validator_option : std::false_type {};
