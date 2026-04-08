@@ -13,6 +13,7 @@ int main() {
     run_phase3_composite_tests();
     run_phase4_validator_tests();
     run_phase5_error_tests();
+    run_phase6_backend_tests();
     run_phase8_reflection_tests();
     return UNITY_END();
 }

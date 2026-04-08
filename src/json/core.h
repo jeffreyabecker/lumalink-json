@@ -97,6 +97,7 @@ using expected_void = std::expected<void, error>;
 
 struct decode_options {
     context_policy context{context_policy::full};
+    size_t nesting_limit{0};
 };
 
 struct encode_options {

@@ -37,24 +37,7 @@ struct native_fixture {
 };
 
 inline error_code map_deserialization_error(const DeserializationError parse_error) {
-    using Code = DeserializationError::Code;
-
-    switch (parse_error.code()) {
-        case Code::EmptyInput:
-            return error_code::empty_input;
-        case Code::IncompleteInput:
-            return error_code::incomplete_input;
-        case Code::InvalidInput:
-            return error_code::invalid_input;
-        case Code::NoMemory:
-            return error_code::no_memory;
-        case Code::TooDeep:
-            return error_code::too_deep;
-        case Code::Ok:
-            return error_code::ok;
-    }
-
-    return error_code::invalid_input;
+    return detail::map_deserialization_error(parse_error);
 }
 
 template <typename T>

@@ -96,13 +96,13 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 6: Parse API And Backend Mapping Coverage
 
-- BCK-01 [todo] : Add tests for deserialize from `JsonVariantConst`.
-- BCK-02 [todo] : Add tests for deserialize from raw JSON input.
-- BCK-03 [todo] : Add tests mapping empty input to `empty_input`.
-- BCK-04 [todo] : Add tests mapping incomplete JSON input to `incomplete_input`.
-- BCK-05 [todo] : Add tests mapping malformed JSON input to `invalid_input`.
-- BCK-06 [todo] : Add tests mapping backend memory exhaustion to `no_memory` where practical.
-- BCK-07 [todo] : Add tests mapping excessive nesting to `too_deep` where practical.
+- BCK-01 [done] : Add tests for deserialize from `JsonVariantConst`.
+- BCK-02 [done] : Add tests for deserialize from raw JSON input.
+- BCK-03 [done] : Add tests mapping empty input to `empty_input`.
+- BCK-04 [done] : Add tests mapping incomplete JSON input to `incomplete_input`.
+- BCK-05 [done] : Add tests mapping malformed JSON input to `invalid_input`.
+- BCK-06 [done] : Add tests mapping backend memory exhaustion to `no_memory` where practical.
+- BCK-07 [done] : Add tests mapping excessive nesting to `too_deep` where practical.
 
 ## Phase 7: Extensibility Coverage
 

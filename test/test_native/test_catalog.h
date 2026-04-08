@@ -5,4 +5,5 @@ void run_phase2_scalar_tests();
 void run_phase3_composite_tests();
 void run_phase4_validator_tests();
 void run_phase5_error_tests();
+void run_phase6_backend_tests();
 void run_phase8_reflection_tests();

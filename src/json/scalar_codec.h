@@ -55,6 +55,44 @@ template <typename Spec>
     return annotate<Spec>(error{code, {}, message, backend_status}, policy);
 }
 
+[[nodiscard]] constexpr error_code map_deserialization_error(const DeserializationError parse_error) noexcept {
+    using Code = DeserializationError::Code;
+
+    switch (parse_error.code()) {
+        case Code::EmptyInput:
+            return error_code::empty_input;
+        case Code::IncompleteInput:
+            return error_code::incomplete_input;
+        case Code::InvalidInput:
+            return error_code::invalid_input;
+        case Code::NoMemory:
+            return error_code::no_memory;
+        case Code::TooDeep:
+            return error_code::too_deep;
+        case Code::Ok:
+            return error_code::ok;
+    }
+
+    return error_code::invalid_input;
+}
+
+inline DeserializationError deserialize_raw_json(
+    JsonDocument& document,
+    const std::string_view source,
+    const decode_options options) {
+    document.clear();
+
+    if (options.nesting_limit == 0U) {
+        return deserializeJson(document, source.data(), source.size());
+    }
+
+    return deserializeJson(
+        document,
+        source.data(),
+        source.size(),
+        DeserializationOption::NestingLimit(options.nesting_limit));
+}
+
 template <typename Spec>
 [[nodiscard]] constexpr expected_void check_pattern(
     const std::string_view value,
@@ -591,6 +629,26 @@ expected<Target> deserialize(const JsonVariantConst source, const decode_options
 template <typename Target, typename Spec>
 expected<Target> deserialize(const JsonDocument& document, const decode_options options = {}) {
     return deserialize<Target, Spec>(document.as<JsonVariantConst>(), options);
+}
+
+template <typename Target, typename Spec>
+expected<Target> deserialize(const std::string_view source, JsonDocument& document, const decode_options options = {}) {
+    const auto parse_error = detail::deserialize_raw_json(document, source, options);
+    if (parse_error) {
+        return std::unexpected(error{
+            detail::map_deserialization_error(parse_error),
+            {},
+            parse_error.c_str(),
+            static_cast<int>(parse_error.code())});
+    }
+
+    return deserialize<Target, Spec>(document.as<JsonVariantConst>(), options);
+}
+
+template <typename Target, typename Spec>
+expected<Target> deserialize(const std::string_view source, const decode_options options = {}) {
+    JsonDocument document;
+    return deserialize<Target, Spec>(source, document, options);
 }
 
 template <typename Spec, typename Source>

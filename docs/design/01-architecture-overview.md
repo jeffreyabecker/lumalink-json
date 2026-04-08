@@ -42,6 +42,7 @@ lumalink-json defines a compile-time spec system for structured JSON validation 
 
 - deserialize:
   std::expected<T, json::error> deserialize<T, Spec>(JsonVariantConst src);
+   std::expected<T, json::error> deserialize<T, Spec>(std::string_view json);
 
 - serialize:
   std::expected<void, json::error> serialize<Spec>(const T& value, JsonVariant dst);
