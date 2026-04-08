@@ -638,8 +638,8 @@ struct decoder<Spec, JsonDocument> {
 template <typename Spec>
 struct encoder<Spec, JsonDocument> {
     static expected_void encode(const JsonDocument& value, JsonVariant destination, const encode_state& /*state*/) {
-        // Copy the provided document's root into destination
-        destination.set(value.template to<JsonVariant>());
+        // Copy the provided document's root into destination using a const view
+        destination.set(value.as<JsonVariantConst>());
         return {};
     }
 };
