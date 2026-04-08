@@ -621,6 +621,29 @@ struct encoder<spec::any<Options...>, JsonVariantConst> {
     }
 };
 
+// Support decoding/encoding a whole JsonDocument as a field/property value.
+// This allows struct members like `JsonDocument foo;` to round-trip through
+// the codec system. We copy the JSON subtree into a temporary document when
+// decoding and copy the caller-provided document's root when encoding.
+template <typename Spec>
+struct decoder<Spec, JsonDocument> {
+    static expected<JsonDocument> decode(const JsonVariantConst source, const decode_state& /*state*/) {
+        JsonDocument doc;
+        JsonVariant dst = doc.to<JsonVariant>();
+        dst.set(source);
+        return expected<JsonDocument>{std::move(doc)};
+    }
+};
+
+template <typename Spec>
+struct encoder<Spec, JsonDocument> {
+    static expected_void encode(const JsonDocument& value, JsonVariant destination, const encode_state& /*state*/) {
+        // Copy the provided document's root into destination
+        destination.set(value.template to<JsonVariant>());
+        return {};
+    }
+};
+
 template <typename Target, typename Spec>
 expected<Target> deserialize(const JsonVariantConst source, const decode_options options = {}) {
     return decoder<Spec, Target>::decode(source, decode_state{options.context});
