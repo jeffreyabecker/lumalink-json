@@ -33,6 +33,19 @@ struct optional_counter {
     std::optional<int> count;
 };
 
+struct composed_range {
+    int min;
+    int max;
+};
+
+using composed_override = std::variant<composed_range, std::tuple<int, std::string>>;
+
+struct composed_pipeline {
+    composed_range primary;
+    std::vector<composed_range> history;
+    std::optional<composed_override> override_value;
+};
+
 using settings_spec = lumalink::json::spec::object<
     lumalink::json::spec::field<"id", lumalink::json::spec::integer<>>,
     lumalink::json::spec::field<"display_name", lumalink::json::spec::string<>>,
@@ -59,6 +72,26 @@ using int_or_bool_spec =
     lumalink::json::spec::one_of<lumalink::json::spec::integer<>, lumalink::json::spec::boolean<>>;
 using int_or_number_spec =
     lumalink::json::spec::one_of<lumalink::json::spec::integer<>, lumalink::json::spec::number<>>;
+using bounded_compose_int_spec = lumalink::json::spec::integer<lumalink::json::opts::min_max_value<0, 99>>;
+using composed_range_spec = lumalink::json::spec::object<
+    lumalink::json::spec::field<"min", bounded_compose_int_spec>,
+    lumalink::json::spec::field<"max", bounded_compose_int_spec>>;
+using composed_override_tuple_spec =
+    lumalink::json::spec::tuple<bounded_compose_int_spec, lumalink::json::spec::string<>>;
+using composed_override_spec = lumalink::json::spec::one_of<composed_range_spec, composed_override_tuple_spec>;
+using composed_pipeline_spec = lumalink::json::spec::object<
+    lumalink::json::spec::field<"primary", composed_range_spec>,
+    lumalink::json::spec::field<
+        "history",
+        lumalink::json::spec::array_of<composed_range_spec, lumalink::json::opts::min_max_elements<1, 3>>>,
+    lumalink::json::spec::field<"override", lumalink::json::spec::optional<composed_override_spec>>>;
+
+std::string serialize_document_or_fail(const JsonDocument& document) {
+    std::string serialized;
+    const size_t bytes_written = serializeJson(document, serialized);
+    TEST_ASSERT_GREATER_THAN_UINT32(0U, static_cast<uint32_t>(bytes_written));
+    return serialized;
+}
 
 } // namespace
 
@@ -286,6 +319,60 @@ void test_cmp_16_one_of_supported_ambiguity_behavior_uses_first_matching_alterna
     TEST_ASSERT_EQUAL(5, std::get<int>(value));
 }
 
+void test_cmp_17_reusable_specs_compose_across_nested_composite_nodes() {
+    lumalink::json::test_support::native_fixture fixture;
+    fixture.parse_or_fail(
+        R"({"primary":{"min":10,"max":20},"history":[{"min":1,"max":2},{"min":3,"max":4}],"override":[12,"ACTIVE"]})");
+
+    const auto decoded = lumalink::json::deserialize<composed_pipeline, composed_pipeline_spec>(fixture.root());
+    const auto& value = lumalink::json::test_support::assert_expected_success(decoded);
+    TEST_ASSERT_EQUAL(10, value.primary.min);
+    TEST_ASSERT_EQUAL(20, value.primary.max);
+    TEST_ASSERT_EQUAL_UINT32(2U, static_cast<uint32_t>(value.history.size()));
+    TEST_ASSERT_EQUAL(3, value.history[1].min);
+    TEST_ASSERT_TRUE(value.override_value.has_value());
+    TEST_ASSERT_TRUE((std::holds_alternative<std::tuple<int, std::string>>(*value.override_value)));
+
+    const auto& override_tuple = std::get<std::tuple<int, std::string>>(*value.override_value);
+    TEST_ASSERT_EQUAL(12, std::get<0>(override_tuple));
+    TEST_ASSERT_EQUAL_STRING("ACTIVE", std::get<1>(override_tuple).c_str());
+
+    JsonDocument encoded;
+    composed_pipeline encoded_value{
+        {5, 15},
+        {{5, 15}, {20, 25}},
+        std::optional<composed_override>{composed_override{std::in_place_index<0>, composed_range{30, 40}}}};
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::serialize<composed_pipeline_spec>(encoded_value, encoded));
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"primary\":{\"min\":5,\"max\":15},\"history\":[{\"min\":5,\"max\":15},{\"min\":20,\"max\":25}],\"override\":{\"min\":30,\"max\":40}}",
+        serialize_document_or_fail(encoded).c_str());
+}
+
+void test_cmp_18_composed_specs_preserve_nested_error_context() {
+    lumalink::json::test_support::native_fixture fixture;
+    fixture.parse_or_fail(
+        R"({"primary":{"min":10,"max":20},"history":[{"min":1,"max":2},{"min":3,"max":"bad"}],"override":null})");
+
+    const auto result = lumalink::json::deserialize<composed_pipeline, composed_pipeline_spec>(fixture.root());
+    const auto& failure =
+        lumalink::json::test_support::assert_expected_error(result, lumalink::json::error_code::unexpected_type);
+    lumalink::json::test_support::assert_error_context_depth(failure, 7U);
+    lumalink::json::test_support::assert_error_context_entry(failure, 0U, lumalink::json::node_kind::integer);
+    lumalink::json::test_support::assert_error_context_entry(failure, 1U, lumalink::json::node_kind::field, "max");
+    lumalink::json::test_support::assert_error_context_entry(failure, 2U, lumalink::json::node_kind::object);
+    lumalink::json::test_support::assert_error_context_entry(
+        failure,
+        3U,
+        lumalink::json::node_kind::array_of,
+        {},
+        {},
+        1U);
+    lumalink::json::test_support::assert_error_context_entry(failure, 4U, lumalink::json::node_kind::array_of);
+    lumalink::json::test_support::assert_error_context_entry(failure, 5U, lumalink::json::node_kind::field, "history");
+    lumalink::json::test_support::assert_error_context_entry(failure, 6U, lumalink::json::node_kind::object);
+}
+
 void run_phase3_composite_tests() {
     RUN_TEST(test_cmp_01_field_and_object_required_field_decode_success);
     RUN_TEST(test_cmp_02_field_and_object_missing_field_failures);
@@ -303,4 +390,6 @@ void run_phase3_composite_tests() {
     RUN_TEST(test_cmp_14_one_of_ordered_alternative_selection_with_first_successful_match);
     RUN_TEST(test_cmp_15_one_of_all_alternatives_failed_error_reporting);
     RUN_TEST(test_cmp_16_one_of_supported_ambiguity_behavior_uses_first_matching_alternative);
+    RUN_TEST(test_cmp_17_reusable_specs_compose_across_nested_composite_nodes);
+    RUN_TEST(test_cmp_18_composed_specs_preserve_nested_error_context);
 }

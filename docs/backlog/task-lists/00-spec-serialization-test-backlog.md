@@ -141,7 +141,9 @@ Compile-time negative coverage should be implemented as separate build-only chec
 - SCH-05 [done] : Add tests for projecting supported options such as `min_max_value`, `min_max_elements`, and `pattern` into JSON Schema keywords.
 - SCH-06 [done] : Add tests proving schema generation writes into a caller-provided `ArduinoJson` document without requiring runtime decode or encode inputs.
 
-## Phase 11: CI And Maintenance Coverage
+## Phase 11: CI And Maintenance Coverage (Deferred)
+
+Deferred for now. These items remain pending backlog work and are not part of the current active phase sequence.
 
 - CI-01 [todo] : Add a dedicated native test target for runtime conformance.
 - CI-02 [todo] : Add a separate compile-only target or script for negative template tests.

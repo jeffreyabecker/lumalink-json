@@ -1,6 +1,7 @@
 # lumalink-json
 
 Design docs from the session decomposition are in [docs/design/README.md](docs/design/README.md).
+Usage examples for the shipped API surface are in [docs/usage-guide.md](docs/usage-guide.md).
 
 ## PlatformIO Setup
 
