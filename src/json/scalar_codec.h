@@ -1,0 +1,466 @@
+#pragma once
+
+#include <cstring>
+#include <limits>
+#include <string>
+#include <type_traits>
+#include <utility>
+
+#include <json/core.h>
+#include <json/spec.h>
+#include <json/traits.h>
+
+namespace lumalink::json::detail {
+
+template <typename T>
+using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
+
+template <typename T>
+inline constexpr bool is_supported_string_target_v =
+    std::is_same_v<remove_cvref_t<T>, std::string> ||
+    std::is_same_v<remove_cvref_t<T>, std::string_view> ||
+    std::is_same_v<remove_cvref_t<T>, const char*>;
+
+template <typename Enum, typename = void>
+struct has_enum_strings : std::false_type {};
+
+template <typename Enum>
+struct has_enum_strings<Enum, std::void_t<decltype(traits::enum_strings<Enum>::values)>> : std::true_type {};
+
+template <typename Spec>
+constexpr std::string_view logical_name_v = []() constexpr {
+    using name_option = typename spec_descriptor<Spec>::name_option;
+    if constexpr (std::is_void_v<name_option>) {
+        return std::string_view{};
+    } else {
+        return name_option::value();
+    }
+}();
+
+template <typename Spec>
+[[nodiscard]] constexpr error annotate(error value, const context_policy policy) noexcept {
+    return with_context(
+        value,
+        error_context_entry{spec_descriptor<Spec>::kind, logical_name_v<Spec>, {}},
+        policy);
+}
+
+template <typename Spec>
+[[nodiscard]] constexpr error make_error(
+    const error_code code,
+    const context_policy policy,
+    const std::string_view message = {},
+    const int backend_status = 0) noexcept {
+    return annotate<Spec>(error{code, {}, message, backend_status}, policy);
+}
+
+template <typename Spec>
+[[nodiscard]] constexpr expected_void check_pattern(
+    const std::string_view value,
+    const context_policy policy,
+    const std::string_view failure_message = "pattern mismatch") noexcept {
+    using pattern_option = typename spec_descriptor<Spec>::pattern_option;
+
+    if constexpr (std::is_void_v<pattern_option>) {
+        (void)value;
+        (void)policy;
+        (void)failure_message;
+        return {};
+    } else {
+        if (!static_cast<bool>(pattern_option::value(value))) {
+            return std::unexpected(make_error<Spec>(error_code::pattern_mismatch, policy, failure_message));
+        }
+
+        return {};
+    }
+}
+
+template <typename Target, typename Spec>
+[[nodiscard]] constexpr expected_void check_min_max_value(
+    const Target value,
+    const context_policy policy,
+    const std::string_view failure_message = "value out of range") noexcept {
+    using range_option = typename spec_descriptor<Spec>::min_max_value_option;
+
+    if constexpr (std::is_void_v<range_option>) {
+        (void)value;
+        (void)policy;
+        (void)failure_message;
+        return {};
+    } else {
+        using compare_type = long double;
+        const auto promoted = static_cast<compare_type>(value);
+        const auto min_value = static_cast<compare_type>(range_option::min);
+        const auto max_value = static_cast<compare_type>(range_option::max);
+
+        if (promoted < min_value || promoted > max_value) {
+            return std::unexpected(make_error<Spec>(error_code::value_out_of_range, policy, failure_message));
+        }
+
+        return {};
+    }
+}
+
+[[nodiscard]] inline bool is_json_number(const JsonVariantConst source) {
+    return source.is<float>() || source.is<double>() || source.is<long long>() || source.is<unsigned long long>();
+}
+
+template <typename Enum>
+[[nodiscard]] expected<Enum> decode_enum_token(
+    const std::string_view token,
+    const context_policy policy,
+    const node_kind kind,
+    const std::string_view logical_name) {
+    static_assert(has_enum_strings<Enum>::value, "enum_string requires json::traits::enum_strings specialization");
+
+    for (const auto& entry : traits::enum_strings<Enum>::values) {
+        if (entry.token == token) {
+            return entry.value;
+        }
+    }
+
+    return std::unexpected(with_context(
+        error{error_code::enum_string_unknown, {}, "unknown enum token"},
+        error_context_entry{kind, logical_name, {}},
+        policy));
+}
+
+template <typename Enum>
+[[nodiscard]] expected<std::string_view> encode_enum_value(
+    const Enum value,
+    const context_policy policy,
+    const node_kind kind,
+    const std::string_view logical_name) {
+    static_assert(has_enum_strings<Enum>::value, "enum_string requires json::traits::enum_strings specialization");
+
+    for (const auto& entry : traits::enum_strings<Enum>::values) {
+        if (entry.value == value) {
+            return entry.token;
+        }
+    }
+
+    return std::unexpected(with_context(
+        error{error_code::enum_value_unmapped, {}, "unmapped enum value"},
+        error_context_entry{kind, logical_name, {}},
+        policy));
+}
+
+} // namespace lumalink::json::detail
+
+namespace lumalink::json {
+
+template <typename Spec, typename T, typename Enable = void>
+struct decoder {
+    static expected<T> decode(JsonVariantConst, const decode_state&) {
+        static_assert(detail::always_false_v<Spec, T>, "decoder specialization is not implemented for this Spec/T pair");
+    }
+};
+
+template <typename Spec, typename T, typename Enable = void>
+struct encoder {
+    static expected_void encode(const T&, JsonVariant, const encode_state&) {
+        static_assert(detail::always_false_v<Spec, T>, "encoder specialization is not implemented for this Spec/T pair");
+        return std::unexpected(error{error_code::not_implemented, {}, "encoder specialization missing"});
+    }
+};
+
+template <typename... Options>
+struct decoder<spec::null<Options...>, std::nullptr_t> {
+    static expected<std::nullptr_t> decode(const JsonVariantConst source, const decode_state& state) {
+        if (!source.isNull()) {
+            return std::unexpected(detail::make_error<spec::null<Options...>>(
+                error_code::unexpected_type,
+                state.context,
+                "expected null"));
+        }
+
+        return nullptr;
+    }
+};
+
+template <typename... Options>
+struct encoder<spec::null<Options...>, std::nullptr_t> {
+    static expected_void encode(std::nullptr_t, JsonVariant destination, const encode_state&) {
+        destination.set(nullptr);
+        return {};
+    }
+};
+
+template <typename... Options>
+struct decoder<spec::boolean<Options...>, bool> {
+    static expected<bool> decode(const JsonVariantConst source, const decode_state& state) {
+        if (!source.is<bool>()) {
+            return std::unexpected(detail::make_error<spec::boolean<Options...>>(
+                error_code::unexpected_type,
+                state.context,
+                "expected boolean"));
+        }
+
+        return source.as<bool>();
+    }
+};
+
+template <typename... Options>
+struct encoder<spec::boolean<Options...>, bool> {
+    static expected_void encode(const bool value, JsonVariant destination, const encode_state&) {
+        destination.set(value);
+        return {};
+    }
+};
+
+template <typename... Options, typename T>
+struct decoder<spec::integer<Options...>, T, std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>>> {
+    static expected<T> decode(const JsonVariantConst source, const decode_state& state) {
+        T value{};
+
+        if constexpr (std::is_signed_v<T>) {
+            if (source.is<long long>()) {
+                const auto raw = source.as<long long>();
+                if (raw < static_cast<long long>(std::numeric_limits<T>::min()) ||
+                    raw > static_cast<long long>(std::numeric_limits<T>::max())) {
+                    return std::unexpected(detail::make_error<spec::integer<Options...>>(
+                        error_code::value_out_of_range,
+                        state.context,
+                        "signed integer out of range"));
+                }
+
+                value = static_cast<T>(raw);
+            } else if (source.is<unsigned long long>()) {
+                const auto raw = source.as<unsigned long long>();
+                if (raw > static_cast<unsigned long long>(std::numeric_limits<T>::max())) {
+                    return std::unexpected(detail::make_error<spec::integer<Options...>>(
+                        error_code::value_out_of_range,
+                        state.context,
+                        "signed integer out of range"));
+                }
+
+                value = static_cast<T>(raw);
+            } else {
+                return std::unexpected(detail::make_error<spec::integer<Options...>>(
+                    error_code::unexpected_type,
+                    state.context,
+                    "expected integer"));
+            }
+        } else {
+            if (source.is<unsigned long long>()) {
+                const auto raw = source.as<unsigned long long>();
+                if (raw > static_cast<unsigned long long>(std::numeric_limits<T>::max())) {
+                    return std::unexpected(detail::make_error<spec::integer<Options...>>(
+                        error_code::value_out_of_range,
+                        state.context,
+                        "unsigned integer out of range"));
+                }
+
+                value = static_cast<T>(raw);
+            } else if (source.is<long long>()) {
+                const auto raw = source.as<long long>();
+                if (raw < 0 || static_cast<unsigned long long>(raw) > std::numeric_limits<T>::max()) {
+                    return std::unexpected(detail::make_error<spec::integer<Options...>>(
+                        error_code::value_out_of_range,
+                        state.context,
+                        "unsigned integer out of range"));
+                }
+
+                value = static_cast<T>(raw);
+            } else {
+                return std::unexpected(detail::make_error<spec::integer<Options...>>(
+                    error_code::unexpected_type,
+                    state.context,
+                    "expected integer"));
+            }
+        }
+
+        const auto bounds_result = detail::check_min_max_value<T, spec::integer<Options...>>(value, state.context);
+        if (!bounds_result.has_value()) {
+            return std::unexpected(bounds_result.error());
+        }
+
+        return value;
+    }
+};
+
+template <typename... Options, typename T>
+struct encoder<spec::integer<Options...>, T, std::enable_if_t<std::is_integral_v<T> && !std::is_same_v<T, bool>>> {
+    static expected_void encode(const T value, JsonVariant destination, const encode_state& state) {
+        const auto bounds_result = detail::check_min_max_value<T, spec::integer<Options...>>(value, state.context);
+        if (!bounds_result.has_value()) {
+            return std::unexpected(bounds_result.error());
+        }
+
+        destination.set(value);
+        return {};
+    }
+};
+
+template <typename... Options, typename T>
+struct decoder<spec::number<Options...>, T, std::enable_if_t<std::is_floating_point_v<T>>> {
+    static expected<T> decode(const JsonVariantConst source, const decode_state& state) {
+        if (!detail::is_json_number(source)) {
+            return std::unexpected(detail::make_error<spec::number<Options...>>(
+                error_code::unexpected_type,
+                state.context,
+                "expected number"));
+        }
+
+        const T value = source.as<T>();
+        const auto bounds_result = detail::check_min_max_value<T, spec::number<Options...>>(value, state.context);
+        if (!bounds_result.has_value()) {
+            return std::unexpected(bounds_result.error());
+        }
+
+        return value;
+    }
+};
+
+template <typename... Options, typename T>
+struct encoder<spec::number<Options...>, T, std::enable_if_t<std::is_floating_point_v<T>>> {
+    static expected_void encode(const T value, JsonVariant destination, const encode_state& state) {
+        const auto bounds_result = detail::check_min_max_value<T, spec::number<Options...>>(value, state.context);
+        if (!bounds_result.has_value()) {
+            return std::unexpected(bounds_result.error());
+        }
+
+        destination.set(value);
+        return {};
+    }
+};
+
+template <typename... Options, typename T>
+struct decoder<spec::string<Options...>, T, std::enable_if_t<detail::is_supported_string_target_v<T>>> {
+    static expected<T> decode(const JsonVariantConst source, const decode_state& state) {
+        if (!source.is<const char*>()) {
+            return std::unexpected(detail::make_error<spec::string<Options...>>(
+                error_code::unexpected_type,
+                state.context,
+                "expected string"));
+        }
+
+        const char* raw = source.as<const char*>();
+        const std::string_view value = raw == nullptr ? std::string_view{} : std::string_view{raw, std::strlen(raw)};
+
+        const auto pattern_result = detail::check_pattern<spec::string<Options...>>(value, state.context);
+        if (!pattern_result.has_value()) {
+            return std::unexpected(pattern_result.error());
+        }
+
+        if constexpr (std::is_same_v<detail::remove_cvref_t<T>, std::string>) {
+            return std::string(value);
+        } else if constexpr (std::is_same_v<detail::remove_cvref_t<T>, std::string_view>) {
+            return value;
+        } else {
+            return raw;
+        }
+    }
+};
+
+template <typename... Options, typename T>
+struct encoder<spec::string<Options...>, T, std::enable_if_t<detail::is_supported_string_target_v<T>>> {
+    static expected_void encode(const T& value, JsonVariant destination, const encode_state& state) {
+        std::string_view view{};
+
+        if constexpr (std::is_same_v<detail::remove_cvref_t<T>, std::string>) {
+            view = value;
+        } else if constexpr (std::is_same_v<detail::remove_cvref_t<T>, std::string_view>) {
+            view = value;
+        } else {
+            if (value == nullptr) {
+                return std::unexpected(detail::make_error<spec::string<Options...>>(
+                    error_code::unexpected_type,
+                    state.context,
+                    "null string pointer"));
+            }
+
+            view = std::string_view{value, std::strlen(value)};
+        }
+
+        const auto pattern_result = detail::check_pattern<spec::string<Options...>>(view, state.context);
+        if (!pattern_result.has_value()) {
+            return std::unexpected(pattern_result.error());
+        }
+
+        destination.set(std::string(view));
+        return {};
+    }
+};
+
+template <typename Enum, typename... Options>
+struct decoder<spec::enum_string<Enum, Options...>, Enum> {
+    static expected<Enum> decode(const JsonVariantConst source, const decode_state& state) {
+        if (!source.is<const char*>()) {
+            return std::unexpected(detail::make_error<spec::enum_string<Enum, Options...>>(
+                error_code::unexpected_type,
+                state.context,
+                "expected enum string token"));
+        }
+
+        const char* raw = source.as<const char*>();
+        if (raw == nullptr) {
+            return std::unexpected(detail::make_error<spec::enum_string<Enum, Options...>>(
+                error_code::unexpected_type,
+                state.context,
+                "expected enum string token"));
+        }
+
+        return detail::decode_enum_token<Enum>(
+            std::string_view{raw, std::strlen(raw)},
+            state.context,
+            node_kind::enum_string,
+            detail::logical_name_v<spec::enum_string<Enum, Options...>>);
+    }
+};
+
+template <typename Enum, typename... Options>
+struct encoder<spec::enum_string<Enum, Options...>, Enum> {
+    static expected_void encode(const Enum value, JsonVariant destination, const encode_state& state) {
+        const auto token_result = detail::encode_enum_value<Enum>(
+            value,
+            state.context,
+            node_kind::enum_string,
+            detail::logical_name_v<spec::enum_string<Enum, Options...>>);
+        if (!token_result.has_value()) {
+            return std::unexpected(token_result.error());
+        }
+
+        destination.set(std::string(*token_result));
+        return {};
+    }
+};
+
+template <typename... Options>
+struct decoder<spec::any<Options...>, JsonVariantConst> {
+    static expected<JsonVariantConst> decode(const JsonVariantConst source, const decode_state&) {
+        return expected<JsonVariantConst>{source};
+    }
+};
+
+template <typename... Options>
+struct encoder<spec::any<Options...>, JsonVariantConst> {
+    static expected_void encode(const JsonVariantConst& value, JsonVariant destination, const encode_state&) {
+        destination.set(value);
+        return {};
+    }
+};
+
+template <typename Target, typename Spec>
+expected<Target> deserialize(const JsonVariantConst source, const decode_options options = {}) {
+    return decoder<Spec, Target>::decode(source, decode_state{options.context});
+}
+
+template <typename Target, typename Spec>
+expected<Target> deserialize(const JsonDocument& document, const decode_options options = {}) {
+    return deserialize<Target, Spec>(document.as<JsonVariantConst>(), options);
+}
+
+template <typename Spec, typename Source>
+expected_void serialize(const Source& value, JsonVariant destination, const encode_options options = {}) {
+    return encoder<Spec, detail::remove_cvref_t<Source>>::encode(value, destination, encode_state{options.context});
+}
+
+template <typename Spec, typename Source>
+expected_void serialize(const Source& value, JsonDocument& document, const encode_options options = {}) {
+    document.clear();
+    JsonVariant destination = document.to<JsonVariant>();
+    return serialize<Spec>(value, destination, options);
+}
+
+} // namespace lumalink::json

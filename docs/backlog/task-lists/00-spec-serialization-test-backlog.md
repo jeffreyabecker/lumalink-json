@@ -32,23 +32,23 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 2: Scalar Node Coverage
 
-- SCL-01 [todo] : Add `null` node tests for decode success from JSON `null`.
-- SCL-02 [todo] : Add `null` node tests for rejecting non-null values.
-- SCL-03 [todo] : Add `boolean` node tests for `true` and `false` decode and encode.
-- SCL-04 [todo] : Add `boolean` node tests for wrong-type failures.
-- SCL-05 [todo] : Add `integer` node tests for signed and unsigned target types.
-- SCL-06 [todo] : Add `integer` node tests for boundary values and overflow or out-of-range failures.
-- SCL-07 [todo] : Add `integer` node tests for `min_max_value` option behavior.
-- SCL-08 [todo] : Add `number` node tests for `float` and `double` decode and encode.
-- SCL-09 [todo] : Add `number` node tests that lock down accepted numeric input forms.
-- SCL-10 [todo] : Add `string` node tests for empty, non-empty, and wrong-type values.
-- SCL-11 [todo] : Add `string` node tests that lock down lifetime expectations for the supported string target types.
-- SCL-12 [todo] : Add `string` node tests for `pattern` option behavior.
-- SCL-13 [todo] : Add `enum_string` node tests for successful decode of every mapped token.
-- SCL-14 [todo] : Add `enum_string` node tests for successful encode of every mapped enum value.
-- SCL-15 [todo] : Add `enum_string` node tests for `enum_string_unknown` on unknown input tokens.
-- SCL-16 [todo] : Add `enum_string` node tests for `enum_value_unmapped` on unmapped encode values.
-- SCL-17 [todo] : Add `any` node tests for pass-through decode and encode behavior.
+- SCL-01 [done] : Add `null` node tests for decode success from JSON `null`.
+- SCL-02 [done] : Add `null` node tests for rejecting non-null values.
+- SCL-03 [done] : Add `boolean` node tests for `true` and `false` decode and encode.
+- SCL-04 [done] : Add `boolean` node tests for wrong-type failures.
+- SCL-05 [done] : Add `integer` node tests for signed and unsigned target types.
+- SCL-06 [done] : Add `integer` node tests for boundary values and overflow or out-of-range failures.
+- SCL-07 [done] : Add `integer` node tests for `min_max_value` option behavior.
+- SCL-08 [done] : Add `number` node tests for `float` and `double` decode and encode.
+- SCL-09 [done] : Add `number` node tests that lock down accepted numeric input forms.
+- SCL-10 [done] : Add `string` node tests for empty, non-empty, and wrong-type values.
+- SCL-11 [done] : Add `string` node tests that lock down lifetime expectations for the supported string target types.
+- SCL-12 [done] : Add `string` node tests for `pattern` option behavior.
+- SCL-13 [done] : Add `enum_string` node tests for successful decode of every mapped token.
+- SCL-14 [done] : Add `enum_string` node tests for successful encode of every mapped enum value.
+- SCL-15 [done] : Add `enum_string` node tests for `enum_string_unknown` on unknown input tokens.
+- SCL-16 [done] : Add `enum_string` node tests for `enum_value_unmapped` on unmapped encode values.
+- SCL-17 [done] : Add `any` node tests for pass-through decode and encode behavior.
 
 ## Phase 3: Composite Node Coverage
 
