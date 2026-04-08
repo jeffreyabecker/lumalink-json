@@ -116,7 +116,7 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 - RFL-01 [done] : Add runtime tests for `pfr`-backed object binding on supported simple aggregates.
 - RFL-02 [done] : Add tests proving spec field keys, not struct field names, drive object mapping.
-- RFL-03 [todo] : Add tests for explicit field-trait fallback on types that are not auto-reflectable.
+- RFL-03 [done] : Add tests for explicit field-trait fallback on types that are not auto-reflectable.
 - RFL-04 [done] : Add compile-fail tests for non-aggregate model types on the auto-reflection path.
 - RFL-05 [done] : Add compile-fail tests for polymorphic model types on the auto-reflection path.
 - RFL-06 [done] : Add compile-fail tests for union model types on the auto-reflection path.
