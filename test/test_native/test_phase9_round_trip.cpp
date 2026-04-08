@@ -244,3 +244,22 @@ void run_phase9_round_trip_tests() {
     RUN_TEST(test_rt_05_one_of_round_trip_each_supported_alternative);
     RUN_TEST(test_rt_06_nested_validators_and_enum_mapping_round_trip);
 }
+
+void test_rt_07_jsondocument_member_round_trip() {
+    struct doc_holder {
+        JsonDocument doc;
+    } input;
+
+    // populate the embedded document
+    JsonVariant root = input.doc.to<JsonVariant>();
+    root["x"] = 42;
+
+    using doc_holder_spec = lumalink::json::spec::object<
+        lumalink::json::spec::field<"doc", lumalink::json::spec::any<>>>;
+
+    const auto result = round_trip_model<doc_holder, doc_holder_spec>(input);
+    const auto& value = lumalink::json::test_support::assert_expected_success(result);
+
+    const JsonVariantConst out_root = value.doc.as<JsonVariantConst>();
+    TEST_ASSERT_EQUAL(42, out_root["x"].as<int>());
+}
