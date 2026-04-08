@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 
-#include <json.h>
+#include <LumaLinkJson.h>
 
 std::string invalid_array_validator(const std::vector<int>&) {
     return "bad";

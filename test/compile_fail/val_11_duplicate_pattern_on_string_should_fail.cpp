@@ -1,6 +1,6 @@
 #include <string_view>
 
-#include <json.h>
+#include <LumaLinkJson.h>
 
 constexpr bool allow_any_string(std::string_view) {
     return true;

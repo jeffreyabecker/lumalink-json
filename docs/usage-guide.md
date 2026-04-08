@@ -7,7 +7,7 @@ This document covers the shipped v1 usage surface of `lumalink-json`: supported 
 `lumalink-json` is header-only. Include the umbrella header:
 
 ```cpp
-#include <json.h>
+#include <LumaLinkJson.h>
 ```
 
 You will typically also need standard library headers for the C++ types you bind:
@@ -60,7 +60,7 @@ All fallible APIs return `std::expected` through `json::expected<T>` or `json::e
 This is the smallest useful end-to-end example with a structured model and `spec::object` binding:
 
 ```cpp
-#include <json.h>
+#include <LumaLinkJson.h>
 
 #include <string>
 

@@ -1,4 +1,4 @@
-#include <json.h>
+#include <LumaLinkJson.h>
 
 constexpr bool validator_one(const int) {
     return true;

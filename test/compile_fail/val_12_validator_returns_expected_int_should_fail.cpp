@@ -1,6 +1,6 @@
 #include <expected>
 
-#include <json.h>
+#include <LumaLinkJson.h>
 
 std::expected<int, lumalink::json::error_code> invalid_expected_validator(const int) {
     return 1;

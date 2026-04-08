@@ -1,4 +1,4 @@
-#include <json.h>
+#include <LumaLinkJson.h>
 
 using duplicate_name_spec = lumalink::json::spec::integer<
     lumalink::json::opts::name<"first">,

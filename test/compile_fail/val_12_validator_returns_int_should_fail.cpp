@@ -1,4 +1,4 @@
-#include <json.h>
+#include <LumaLinkJson.h>
 
 int invalid_integer_validator(const int) {
     return 1;

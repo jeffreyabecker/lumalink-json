@@ -1,4 +1,4 @@
-#include <json.h>
+#include <LumaLinkJson.h>
 
 void invalid_void_validator(const int) {}
 

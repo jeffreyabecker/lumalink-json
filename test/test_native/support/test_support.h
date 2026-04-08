@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <json.h>
+#include <LumaLinkJson.h>
 
 namespace lumalink::json::test_support {
 

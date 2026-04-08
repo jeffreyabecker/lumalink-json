@@ -1,4 +1,4 @@
-#include <json.h>
+#include <LumaLinkJson.h>
 
 using duplicate_range_spec = lumalink::json::spec::integer<
     lumalink::json::opts::min_max_value<0, 10>,

@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <json.h>
+#include <LumaLinkJson.h>
 
 #include "support/test_support.h"
 

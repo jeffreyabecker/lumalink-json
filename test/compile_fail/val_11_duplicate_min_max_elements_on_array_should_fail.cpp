@@ -1,4 +1,4 @@
-#include <json.h>
+#include <LumaLinkJson.h>
 
 using duplicate_element_bounds_spec = lumalink::json::spec::array_of<
     lumalink::json::spec::integer<>,
