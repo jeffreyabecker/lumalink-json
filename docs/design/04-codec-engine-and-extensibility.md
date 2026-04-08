@@ -54,8 +54,8 @@ Behavior:
 4. optional
    - treat null or missing as empty on decode
 5. one_of
-   - evaluate alternatives by strategy
-   - default strategy is ordered attempt with first full success
+   - evaluate alternatives in declaration order
+   - use the first full-successful match
 
 ## Enum string traversal rule
 
@@ -73,7 +73,7 @@ Behavior:
 3. custom validators
    - attach via options
 4. custom discrimination strategy for one_of
-   - policy object in traversal options
+   - reserved for future work; not part of the shipped v1 surface
 5. custom enum mapping traits
    - specialize enum string table for project enum types
 

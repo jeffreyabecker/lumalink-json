@@ -106,11 +106,11 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 7: Extensibility Coverage
 
-- EXT-01 [todo] : Add tests for custom decoder specialization on a non-standard target type.
-- EXT-02 [todo] : Add tests for custom encoder specialization on a non-standard source type.
-- EXT-03 [todo] : Add tests for custom enum mapping traits on project-specific enums.
-- EXT-04 [todo] : Add tests proving custom converter failures propagate as `std::expected` errors.
-- EXT-05 [todo] : Add tests for custom `one_of` discrimination hooks if that extension point ships in v1.
+- EXT-01 [done] : Add tests for custom decoder specialization on a non-standard target type.
+- EXT-02 [done] : Add tests for custom encoder specialization on a non-standard source type.
+- EXT-03 [done] : Add tests for custom enum mapping traits on project-specific enums.
+- EXT-04 [done] : Add tests proving custom converter failures propagate as `std::expected` errors.
+- EXT-05 [done] : Confirm custom `one_of` discrimination hooks are not part of the shipped v1 surface, so no dedicated tests are required in v1.
 
 ## Phase 8: Reflection And Binding Coverage
 
