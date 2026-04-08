@@ -85,14 +85,14 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 5: Error Model And Context Coverage
 
-- ERR-01 [todo] : Add tests for every supported runtime `error_code`.
-- ERR-02 [todo] : Add tests for `full` context policy.
-- ERR-03 [todo] : Add tests for `last` context policy.
-- ERR-04 [todo] : Add tests for `none` context policy.
-- ERR-05 [todo] : Add tests proving first failure is returned without hidden recovery.
-- ERR-06 [todo] : Add tests for nested `object -> array -> tuple -> scalar` failure context.
-- ERR-07 [todo] : Add tests for enum mapping failures including node kind, field key, and logical name.
-- ERR-08 [todo] : Add tests for `value_out_of_range`, `pattern_mismatch`, and `validation_failed` differentiation.
+- ERR-01 [done] : Add tests for every supported runtime `error_code`.
+- ERR-02 [done] : Add tests for `full` context policy.
+- ERR-03 [done] : Add tests for `last` context policy.
+- ERR-04 [done] : Add tests for `none` context policy.
+- ERR-05 [done] : Add tests proving first failure is returned without hidden recovery.
+- ERR-06 [done] : Add tests for nested `object -> array -> tuple -> scalar` failure context.
+- ERR-07 [done] : Add tests for enum mapping failures including node kind, field key, and logical name.
+- ERR-08 [done] : Add tests for `value_out_of_range`, `pattern_mismatch`, and `validation_failed` differentiation.
 
 ## Phase 6: Parse API And Backend Mapping Coverage
 
