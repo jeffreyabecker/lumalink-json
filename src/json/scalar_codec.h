@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include <expected>
 #include <limits>
 #include <string>
 #include <type_traits>
@@ -72,6 +73,58 @@ template <typename Spec>
         }
 
         return {};
+    }
+}
+
+template <typename T>
+struct is_expected_error_code_result : std::false_type {};
+
+template <>
+struct is_expected_error_code_result<std::expected<void, error_code>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_expected_error_code_result_v = is_expected_error_code_result<remove_cvref_t<T>>::value;
+
+template <typename Spec, typename Value>
+[[nodiscard]] expected_void run_validator(
+    const Value& value,
+    const context_policy policy,
+    const std::string_view failure_message = "validation failed") {
+    using validator_option = typename spec_descriptor<Spec>::validator_option;
+
+    if constexpr (std::is_void_v<validator_option>) {
+        (void)value;
+        (void)policy;
+        (void)failure_message;
+        return {};
+    } else {
+        using result_type = remove_cvref_t<decltype(validator_option::value(value))>;
+
+        if constexpr (std::is_same_v<result_type, bool>) {
+            if (validator_option::value(value)) {
+                return {};
+            }
+
+            return std::unexpected(make_error<Spec>(error_code::validation_failed, policy, failure_message));
+        } else if constexpr (is_expected_error_code_result_v<result_type>) {
+            auto result = validator_option::value(value);
+            if (result.has_value()) {
+                return {};
+            }
+
+            return std::unexpected(make_error<Spec>(result.error(), policy, failure_message));
+        } else if constexpr (std::is_same_v<result_type, expected_void>) {
+            auto result = validator_option::value(value);
+            if (result.has_value()) {
+                return {};
+            }
+
+            return std::unexpected(annotate<Spec>(result.error(), policy));
+        } else {
+            static_assert(
+                always_false_v<result_type>,
+                "opts::validator_func requires a bool, std::expected<void, json::error_code>, or json::expected_void return type");
+        }
     }
 }
 
@@ -174,13 +227,23 @@ struct decoder<spec::null<Options...>, std::nullptr_t> {
                 "expected null"));
         }
 
+        const auto validation_result = detail::run_validator<spec::null<Options...>>(nullptr, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         return nullptr;
     }
 };
 
 template <typename... Options>
 struct encoder<spec::null<Options...>, std::nullptr_t> {
-    static expected_void encode(std::nullptr_t, JsonVariant destination, const encode_state&) {
+    static expected_void encode(std::nullptr_t value, JsonVariant destination, const encode_state& state) {
+        const auto validation_result = detail::run_validator<spec::null<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         destination.set(nullptr);
         return {};
     }
@@ -196,13 +259,24 @@ struct decoder<spec::boolean<Options...>, bool> {
                 "expected boolean"));
         }
 
-        return source.as<bool>();
+        const bool value = source.as<bool>();
+        const auto validation_result = detail::run_validator<spec::boolean<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
+        return value;
     }
 };
 
 template <typename... Options>
 struct encoder<spec::boolean<Options...>, bool> {
-    static expected_void encode(const bool value, JsonVariant destination, const encode_state&) {
+    static expected_void encode(const bool value, JsonVariant destination, const encode_state& state) {
+        const auto validation_result = detail::run_validator<spec::boolean<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         destination.set(value);
         return {};
     }
@@ -275,6 +349,11 @@ struct decoder<spec::integer<Options...>, T, std::enable_if_t<std::is_integral_v
             return std::unexpected(bounds_result.error());
         }
 
+        const auto validation_result = detail::run_validator<spec::integer<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         return value;
     }
 };
@@ -285,6 +364,11 @@ struct encoder<spec::integer<Options...>, T, std::enable_if_t<std::is_integral_v
         const auto bounds_result = detail::check_min_max_value<T, spec::integer<Options...>>(value, state.context);
         if (!bounds_result.has_value()) {
             return std::unexpected(bounds_result.error());
+        }
+
+        const auto validation_result = detail::run_validator<spec::integer<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
         }
 
         destination.set(value);
@@ -308,6 +392,11 @@ struct decoder<spec::number<Options...>, T, std::enable_if_t<std::is_floating_po
             return std::unexpected(bounds_result.error());
         }
 
+        const auto validation_result = detail::run_validator<spec::number<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         return value;
     }
 };
@@ -318,6 +407,11 @@ struct encoder<spec::number<Options...>, T, std::enable_if_t<std::is_floating_po
         const auto bounds_result = detail::check_min_max_value<T, spec::number<Options...>>(value, state.context);
         if (!bounds_result.has_value()) {
             return std::unexpected(bounds_result.error());
+        }
+
+        const auto validation_result = detail::run_validator<spec::number<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
         }
 
         destination.set(value);
@@ -344,11 +438,29 @@ struct decoder<spec::string<Options...>, T, std::enable_if_t<detail::is_supporte
         }
 
         if constexpr (std::is_same_v<detail::remove_cvref_t<T>, std::string>) {
-            return std::string(value);
+            T decoded{value};
+            const auto validation_result = detail::run_validator<spec::string<Options...>>(decoded, state.context);
+            if (!validation_result.has_value()) {
+                return std::unexpected(validation_result.error());
+            }
+
+            return decoded;
         } else if constexpr (std::is_same_v<detail::remove_cvref_t<T>, std::string_view>) {
-            return value;
+            T decoded{value};
+            const auto validation_result = detail::run_validator<spec::string<Options...>>(decoded, state.context);
+            if (!validation_result.has_value()) {
+                return std::unexpected(validation_result.error());
+            }
+
+            return decoded;
         } else {
-            return raw;
+            T decoded = raw;
+            const auto validation_result = detail::run_validator<spec::string<Options...>>(decoded, state.context);
+            if (!validation_result.has_value()) {
+                return std::unexpected(validation_result.error());
+            }
+
+            return decoded;
         }
     }
 };
@@ -378,6 +490,11 @@ struct encoder<spec::string<Options...>, T, std::enable_if_t<detail::is_supporte
             return std::unexpected(pattern_result.error());
         }
 
+        const auto validation_result = detail::run_validator<spec::string<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         destination.set(std::string(view));
         return {};
     }
@@ -401,11 +518,21 @@ struct decoder<spec::enum_string<Enum, Options...>, Enum> {
                 "expected enum string token"));
         }
 
-        return detail::decode_enum_token<Enum>(
+        auto decoded = detail::decode_enum_token<Enum>(
             std::string_view{raw, std::strlen(raw)},
             state.context,
             node_kind::enum_string,
             detail::logical_name_v<spec::enum_string<Enum, Options...>>);
+        if (!decoded.has_value()) {
+            return std::unexpected(decoded.error());
+        }
+
+        const auto validation_result = detail::run_validator<spec::enum_string<Enum, Options...>>(*decoded, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
+        return decoded;
     }
 };
 
@@ -421,6 +548,11 @@ struct encoder<spec::enum_string<Enum, Options...>, Enum> {
             return std::unexpected(token_result.error());
         }
 
+        const auto validation_result = detail::run_validator<spec::enum_string<Enum, Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         destination.set(std::string(*token_result));
         return {};
     }
@@ -428,14 +560,24 @@ struct encoder<spec::enum_string<Enum, Options...>, Enum> {
 
 template <typename... Options>
 struct decoder<spec::any<Options...>, JsonVariantConst> {
-    static expected<JsonVariantConst> decode(const JsonVariantConst source, const decode_state&) {
+    static expected<JsonVariantConst> decode(const JsonVariantConst source, const decode_state& state) {
+        const auto validation_result = detail::run_validator<spec::any<Options...>>(source, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         return expected<JsonVariantConst>{source};
     }
 };
 
 template <typename... Options>
 struct encoder<spec::any<Options...>, JsonVariantConst> {
-    static expected_void encode(const JsonVariantConst& value, JsonVariant destination, const encode_state&) {
+    static expected_void encode(const JsonVariantConst& value, JsonVariant destination, const encode_state& state) {
+        const auto validation_result = detail::run_validator<spec::any<Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         destination.set(value);
         return {};
     }

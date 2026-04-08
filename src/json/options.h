@@ -33,6 +33,11 @@ struct pattern {
     static constexpr auto value = Predicate;
 };
 
+template <auto Validator>
+struct validator_func {
+    static constexpr auto value = Validator;
+};
+
 } // namespace lumalink::json::opts
 
 namespace lumalink::json::detail {
@@ -64,6 +69,12 @@ struct is_pattern_option : std::false_type {};
 template <auto Predicate>
 struct is_pattern_option<opts::pattern<Predicate>> : std::true_type {};
 
+template <typename Option>
+struct is_validator_option : std::false_type {};
+
+template <auto Validator>
+struct is_validator_option<opts::validator_func<Validator>> : std::true_type {};
+
 template <typename... Options>
 inline constexpr size_t name_option_count_v = (0U + ... + static_cast<size_t>(is_name_option<Options>::value));
 
@@ -80,12 +91,19 @@ inline constexpr size_t pattern_option_count_v =
     (0U + ... + static_cast<size_t>(is_pattern_option<Options>::value));
 
 template <typename... Options>
+inline constexpr size_t validator_option_count_v =
+    (0U + ... + static_cast<size_t>(is_validator_option<Options>::value));
+
+template <typename... Options>
 struct scalar_option_contract {
     static_assert(name_option_count_v<Options...> <= 1U, "duplicate opts::name options are not allowed");
     static_assert(
         min_max_value_option_count_v<Options...> <= 1U,
         "duplicate opts::min_max_value options are not allowed");
     static_assert(pattern_option_count_v<Options...> <= 1U, "duplicate opts::pattern options are not allowed");
+    static_assert(
+        validator_option_count_v<Options...> <= 1U,
+        "duplicate opts::validator_func options are not allowed");
 };
 
 template <typename... Options>
@@ -94,6 +112,9 @@ struct composite_option_contract {
     static_assert(
         min_max_elements_option_count_v<Options...> <= 1U,
         "duplicate opts::min_max_elements options are not allowed");
+    static_assert(
+        validator_option_count_v<Options...> <= 1U,
+        "duplicate opts::validator_func options are not allowed");
 };
 
 template <typename... Options>
@@ -138,6 +159,19 @@ struct first_pattern_option<First, Rest...> {
         is_pattern_option<First>::value,
         First,
         typename first_pattern_option<Rest...>::type>;
+};
+
+template <typename... Options>
+struct first_validator_option {
+    using type = void;
+};
+
+template <typename First, typename... Rest>
+struct first_validator_option<First, Rest...> {
+    using type = std::conditional_t<
+        is_validator_option<First>::value,
+        First,
+        typename first_validator_option<Rest...>::type>;
 };
 
 template <typename... Options>

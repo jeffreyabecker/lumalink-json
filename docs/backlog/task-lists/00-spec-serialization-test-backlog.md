@@ -71,17 +71,17 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 ## Phase 4: Validator And Option Coverage
 
-- VAL-01 [todo] : Add `validator_func` tests for boolean-return validators on success.
-- VAL-02 [todo] : Add `validator_func` tests for boolean-return validators on failure.
-- VAL-03 [todo] : Add `validator_func` tests for `std::expected`-return validators on success.
-- VAL-04 [todo] : Add `validator_func` tests for `std::expected`-return validators on failure.
-- VAL-05 [todo] : Add tests showing validators run after successful base decode.
-- VAL-06 [todo] : Add tests showing validators run during encode when required by the design.
-- VAL-07 [todo] : Add `opts::name` tests proving logical names appear in error context.
-- VAL-08 [todo] : Add `min_max_elements` tests at lower and upper bounds.
-- VAL-09 [todo] : Add `min_max_value` tests at lower and upper bounds.
-- VAL-10 [todo] : Add `pattern` tests for accepted and rejected string values.
-- VAL-11 [todo] : Add compile-fail tests for duplicate option categories on a single node.
+- VAL-01 [done] : Add `validator_func` tests for boolean-return validators on success.
+- VAL-02 [done] : Add `validator_func` tests for boolean-return validators on failure.
+- VAL-03 [done] : Add `validator_func` tests for `std::expected`-return validators on success.
+- VAL-04 [done] : Add `validator_func` tests for `std::expected`-return validators on failure.
+- VAL-05 [done] : Add tests showing validators run after successful base decode.
+- VAL-06 [done] : Add tests showing validators run during encode when required by the design.
+- VAL-07 [done] : Add `opts::name` tests proving logical names appear in error context.
+- VAL-08 [done] : Add `min_max_elements` tests at lower and upper bounds.
+- VAL-09 [done] : Add `min_max_value` tests at lower and upper bounds.
+- VAL-10 [done] : Add `pattern` tests for accepted and rejected string values.
+- VAL-11 [done] : Add compile-fail tests for duplicate option categories on a single node.
 
 ## Phase 5: Error Model And Context Coverage
 

@@ -600,6 +600,11 @@ struct decoder<spec::array_of<ElementSpec, Options...>, T, std::enable_if_t<deta
             ++index;
         }
 
+        const auto validation_result = detail::run_validator<spec::array_of<ElementSpec, Options...>>(values, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
+        }
+
         return values;
     }
 };
@@ -612,6 +617,11 @@ struct encoder<spec::array_of<ElementSpec, Options...>, T, std::enable_if_t<deta
             state.context);
         if (!bounds_result.has_value()) {
             return std::unexpected(bounds_result.error());
+        }
+
+        const auto validation_result = detail::run_validator<spec::array_of<ElementSpec, Options...>>(value, state.context);
+        if (!validation_result.has_value()) {
+            return std::unexpected(validation_result.error());
         }
 
         JsonArray array_destination = destination.to<JsonArray>();

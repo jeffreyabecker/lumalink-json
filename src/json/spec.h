@@ -77,6 +77,7 @@ struct spec_descriptor<spec::null<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using validator_option = typename first_validator_option<Options...>::type;
 };
 
 template <typename... Options>
@@ -86,6 +87,7 @@ struct spec_descriptor<spec::boolean<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using validator_option = typename first_validator_option<Options...>::type;
 };
 
 template <typename... Options>
@@ -95,6 +97,7 @@ struct spec_descriptor<spec::integer<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using validator_option = typename first_validator_option<Options...>::type;
 };
 
 template <typename... Options>
@@ -104,6 +107,7 @@ struct spec_descriptor<spec::number<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using validator_option = typename first_validator_option<Options...>::type;
 };
 
 template <typename... Options>
@@ -113,6 +117,7 @@ struct spec_descriptor<spec::string<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using validator_option = typename first_validator_option<Options...>::type;
 };
 
 template <typename Enum, typename... Options>
@@ -122,6 +127,7 @@ struct spec_descriptor<spec::enum_string<Enum, Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using validator_option = typename first_validator_option<Options...>::type;
 };
 
 template <typename... Options>
@@ -131,6 +137,7 @@ struct spec_descriptor<spec::any<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using validator_option = typename first_validator_option<Options...>::type;
 };
 
 template <fixed_string Key, typename ValueSpec, typename... Options>
@@ -140,6 +147,7 @@ struct spec_descriptor<spec::field<Key, ValueSpec, Options...>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using validator_option = void;
 };
 
 template <typename... Fields>
@@ -149,6 +157,7 @@ struct spec_descriptor<spec::object<Fields...>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using validator_option = void;
 };
 
 template <typename ElementSpec, typename... Options>
@@ -158,6 +167,7 @@ struct spec_descriptor<spec::array_of<ElementSpec, Options...>> {
     using min_max_value_option = void;
     using min_max_elements_option = typename first_min_max_elements_option<Options...>::type;
     using pattern_option = void;
+    using validator_option = typename first_validator_option<Options...>::type;
 };
 
 template <typename... Specs>
@@ -167,6 +177,7 @@ struct spec_descriptor<spec::tuple<Specs...>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using validator_option = void;
 };
 
 template <typename ValueSpec>
@@ -176,6 +187,7 @@ struct spec_descriptor<spec::optional<ValueSpec>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using validator_option = void;
 };
 
 template <typename... Specs>
@@ -185,6 +197,7 @@ struct spec_descriptor<spec::one_of<Specs...>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using validator_option = void;
 };
 
 } // namespace lumalink::json::detail
