@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This backlog defines the test work needed to cover the full supported surface of the spec-based JSON serialization and deserialization design.
+This backlog defines the test work needed to cover the full supported surface of the spec-based JSON serialization, deserialization, and JSON Schema emission design.
 
 The target runtime harness is PlatformIO native tests using Unity.
 Compile-time negative coverage should be implemented as separate build-only checks, because several supported failure modes are specified as static assertions or template-instantiation failures rather than runtime errors.
@@ -117,11 +117,11 @@ Compile-time negative coverage should be implemented as separate build-only chec
 - RFL-01 [done] : Add runtime tests for `pfr`-backed object binding on supported simple aggregates.
 - RFL-02 [done] : Add tests proving spec field keys, not struct field names, drive object mapping.
 - RFL-03 [todo] : Add tests for explicit field-trait fallback on types that are not auto-reflectable.
-- RFL-04 [todo] : Add compile-fail tests for non-aggregate model types on the auto-reflection path.
-- RFL-05 [todo] : Add compile-fail tests for polymorphic model types on the auto-reflection path.
-- RFL-06 [todo] : Add compile-fail tests for union model types on the auto-reflection path.
-- RFL-07 [todo] : Add compile-fail tests for inherited aggregate layouts on the auto-reflection path.
-- RFL-08 [todo] : Add compile-fail or guard tests for aggregates exceeding the supported `pfr` arity limit.
+- RFL-04 [done] : Add compile-fail tests for non-aggregate model types on the auto-reflection path.
+- RFL-05 [done] : Add compile-fail tests for polymorphic model types on the auto-reflection path.
+- RFL-06 [done] : Add compile-fail tests for union model types on the auto-reflection path.
+- RFL-07 [done] : Add compile-fail tests for inherited aggregate layouts on the auto-reflection path.
+- RFL-08 [done] : Add compile-fail or guard tests for aggregates exceeding the supported `pfr` arity limit.
 
 ## Phase 9: Serialization Round-Trip Coverage
 
@@ -132,7 +132,16 @@ Compile-time negative coverage should be implemented as separate build-only chec
 - RT-05 [todo] : Add round-trip tests for `one_of` with each supported alternative.
 - RT-06 [todo] : Add round-trip tests that combine validators, enum mapping, and nested context.
 
-## Phase 10: CI And Maintenance Coverage
+## Phase 10: JSON Schema Emission Coverage
+
+- SCH-01 [todo] : Add tests for converting scalar spec nodes into JSON Schema `type` declarations in an `ArduinoJson` document.
+- SCH-02 [todo] : Add tests for converting `field` and `object` specs into JSON Schema `properties`, `required`, and declaration-order-stable output.
+- SCH-03 [todo] : Add tests for converting `optional`, `array_of`, `tuple`, and `one_of` specs into their supported JSON Schema forms.
+- SCH-04 [todo] : Add tests for converting `enum_string` mappings into JSON Schema `enum` token arrays.
+- SCH-05 [todo] : Add tests for projecting supported options such as `min_max_value`, `min_max_elements`, and `pattern` into JSON Schema keywords.
+- SCH-06 [todo] : Add tests proving schema generation writes into a caller-provided `ArduinoJson` document without requiring runtime decode or encode inputs.
+
+## Phase 11: CI And Maintenance Coverage
 
 - CI-01 [todo] : Add a dedicated native test target for runtime conformance.
 - CI-02 [todo] : Add a separate compile-only target or script for negative template tests.
@@ -144,9 +153,10 @@ Compile-time negative coverage should be implemented as separate build-only chec
 
 The spec-based serialization test backlog is complete when:
 
-1. Every supported spec node has success, failure, and round-trip coverage where applicable.
+1. Every supported spec node has success, failure, round-trip, and schema-emission coverage where applicable.
 2. Every supported option has positive and negative coverage.
 3. Every supported runtime error code has at least one deterministic test.
 4. Reflection fallback and reflection rejection rules are covered.
 5. Compile-time invalid-use cases are enforced by automated checks, not manual review.
-6. New features can be added by extending an established test matrix instead of inventing ad hoc coverage.
+6. Supported JSON Schema projections are covered for the nodes and options that advertise schema generation.
+7. New features can be added by extending an established test matrix instead of inventing ad hoc coverage.
