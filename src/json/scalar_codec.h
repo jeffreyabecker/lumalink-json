@@ -16,6 +16,37 @@ namespace lumalink::json::detail {
 template <typename T>
 using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
+template <typename Codec, typename InnerSpec, typename T, typename = void>
+struct has_wrapped_codec_decode : std::false_type {};
+
+template <typename Codec, typename InnerSpec, typename T>
+struct has_wrapped_codec_decode<
+    Codec,
+    InnerSpec,
+    T,
+    std::void_t<decltype(Codec::template decode<InnerSpec, T>(
+        std::declval<JsonVariantConst>(),
+        std::declval<const decode_state&>()))>> : std::true_type {};
+
+template <typename Codec, typename InnerSpec, typename T>
+inline constexpr bool has_wrapped_codec_decode_v = has_wrapped_codec_decode<Codec, InnerSpec, T>::value;
+
+template <typename Codec, typename InnerSpec, typename T, typename = void>
+struct has_wrapped_codec_encode : std::false_type {};
+
+template <typename Codec, typename InnerSpec, typename T>
+struct has_wrapped_codec_encode<
+    Codec,
+    InnerSpec,
+    T,
+    std::void_t<decltype(Codec::template encode<InnerSpec, T>(
+        std::declval<const T&>(),
+        std::declval<JsonVariant>(),
+        std::declval<const encode_state&>()))>> : std::true_type {};
+
+template <typename Codec, typename InnerSpec, typename T>
+inline constexpr bool has_wrapped_codec_encode_v = has_wrapped_codec_encode<Codec, InnerSpec, T>::value;
+
 template <typename T>
 inline constexpr bool is_supported_string_target_v =
     std::is_same_v<remove_cvref_t<T>, std::string> ||
@@ -618,6 +649,43 @@ struct encoder<spec::any<Options...>, JsonVariantConst> {
 
         destination.set(value);
         return {};
+    }
+};
+
+template <typename InnerSpec, typename Codec, typename T>
+struct decoder<spec::with_codec<InnerSpec, Codec>, T> {
+    static expected<T> decode(const JsonVariantConst source, const decode_state& state) {
+        static_assert(
+            detail::has_wrapped_codec_decode_v<Codec, InnerSpec, T>,
+            "spec::with_codec requires Codec::template decode<InnerSpec, T>(JsonVariantConst, const decode_state&)"
+        );
+
+        using result_type = detail::remove_cvref_t<decltype(Codec::template decode<InnerSpec, T>(source, state))>;
+        static_assert(
+            std::is_same_v<result_type, expected<T>>,
+            "spec::with_codec decode must return json::expected<T>"
+        );
+
+        return Codec::template decode<InnerSpec, T>(source, state);
+    }
+};
+
+template <typename InnerSpec, typename Codec, typename T>
+struct encoder<spec::with_codec<InnerSpec, Codec>, T> {
+    static expected_void encode(const T& value, JsonVariant destination, const encode_state& state) {
+        static_assert(
+            detail::has_wrapped_codec_encode_v<Codec, InnerSpec, T>,
+            "spec::with_codec requires Codec::template encode<InnerSpec, T>(const T&, JsonVariant, const encode_state&)"
+        );
+
+        using result_type =
+            detail::remove_cvref_t<decltype(Codec::template encode<InnerSpec, T>(value, destination, state))>;
+        static_assert(
+            std::is_same_v<result_type, expected_void>,
+            "spec::with_codec encode must return json::expected_void"
+        );
+
+        return Codec::template encode<InnerSpec, T>(value, destination, state);
     }
 };
 

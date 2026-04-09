@@ -105,6 +105,7 @@ The shipped v1 node surface maps to the following C++ categories.
 | `spec::string<>` | `std::string`, `std::string_view`, `const char*` |
 | `spec::enum_string<E>` | enum `E` with `json::traits::enum_strings<E>` |
 | `spec::any<>` | `JsonVariantConst` |
+| `spec::with_codec<InnerSpec, Codec>` | any `T` that `Codec` explicitly supports |
 | `spec::object<...>` | aggregate class/struct models, or models with `json::traits::object_fields<Model>` |
 | `spec::optional<T>` | `std::optional<T>` |
 | `spec::array_of<T>` | append containers with `value_type`, `push_back`, `size`, `begin`, `end` |
@@ -202,6 +203,33 @@ deserializeJson(document, R"({"kind":"event","count":3})");
 
 auto payload = lumalink::json::deserialize<JsonVariantConst, raw_payload_spec>(document);
 ```
+
+If you need an erased application type such as `std::any`, wrap `spec::any<>` with an explicit codec using `spec::with_codec<InnerSpec, Codec>`. The codec owns the runtime safety rules and decides which contained C++ types are valid.
+
+```cpp
+#include <any>
+
+struct tagged_any_codec {
+    template <typename InnerSpec, typename T>
+    static lumalink::json::expected<T> decode(
+        JsonVariantConst source,
+        const lumalink::json::decode_state& state);
+
+    template <typename InnerSpec, typename T>
+    static lumalink::json::expected_void encode(
+        const T& value,
+        JsonVariant destination,
+        const lumalink::json::encode_state& state);
+};
+
+using payload_spec = lumalink::json::spec::with_codec<
+    lumalink::json::spec::any<>,
+    tagged_any_codec>;
+
+auto decoded = lumalink::json::deserialize<std::any, payload_spec>(document);
+```
+
+For `std::any`, the codec should reject unsupported or ambiguous payloads explicitly. The framework does not infer a concrete contained type on its own.
 
 ### Objects
 
@@ -618,6 +646,56 @@ struct encoder<spec::string<>, project_token> {
 
 This is the supported v1 customization point for project-specific value codecs.
 
+## Explicit Codec Wrappers
+
+You can also bind a spec node to an explicit codec type with `spec::with_codec<InnerSpec, Codec>`. This is useful when you want the spec itself to select the codec instead of relying on a global `json::decoder<Spec, T>` or `json::encoder<Spec, T>` specialization.
+
+The wrapper delegates to these codec entry points:
+
+```cpp
+template <typename InnerSpec, typename T>
+static json::expected<T> Codec::decode(
+    JsonVariantConst source,
+    const json::decode_state& state);
+
+template <typename InnerSpec, typename T>
+static json::expected_void Codec::encode(
+    const T& value,
+    JsonVariant destination,
+    const json::encode_state& state);
+
+template <typename InnerSpec>
+static json::expected_void Codec::emit_schema(JsonVariant destination);
+```
+
+`emit_schema` is optional. If the codec does not provide it, schema generation falls back to `InnerSpec`.
+
+Example:
+
+```cpp
+struct tagged_any_codec {
+    template <typename InnerSpec, typename T>
+    static lumalink::json::expected<T> decode(
+        JsonVariantConst source,
+        const lumalink::json::decode_state& state);
+
+    template <typename InnerSpec, typename T>
+    static lumalink::json::expected_void encode(
+        const T& value,
+        JsonVariant destination,
+        const lumalink::json::encode_state& state);
+
+    template <typename InnerSpec>
+    static lumalink::json::expected_void emit_schema(JsonVariant destination);
+};
+
+using payload_spec = lumalink::json::spec::with_codec<
+    lumalink::json::spec::any<>,
+    tagged_any_codec>;
+```
+
+`InnerSpec` remains the source of error-context metadata. For schema generation, the wrapper uses `Codec::emit_schema` when present and otherwise falls back to `InnerSpec`. For example, wrapping `spec::string<>` without a schema hook still emits a string schema.
+
 ## Constraints And Gotchas
 
 1. `spec::object` field count must match the bound model arity or explicit `object_fields` tuple arity.
@@ -628,9 +706,12 @@ This is the supported v1 customization point for project-specific value codecs.
 6. `spec::one_of` requires `std::variant` order and arity to match the spec declaration exactly.
 7. `spec::array_of` requires an append container; fixed-size arrays are not part of the shipped v1 surface.
 8. `spec::any<>` is a pass-through JSON node, so the bound type is `JsonVariantConst`.
-9. `opts::validator_func` accepts only `bool`, `std::expected<void, json::error_code>`, or `json::expected_void` return types.
-10. Runtime-only `opts::pattern<Predicate>` validation does not automatically imply a schema `pattern`; provide the schema literal explicitly if you need schema projection.
-11. `std::string_view` and `const char*` decode targets depend on the lifetime of the backing `JsonDocument`.
+9. `spec::with_codec<InnerSpec, Codec>` requires `Codec::decode` and `Codec::encode` with the exact signatures shown above.
+10. `Codec::emit_schema` is optional, but if you provide it the exact return type must be `json::expected_void`.
+11. If you use `spec::with_codec<spec::any<>, Codec>` for `std::any`, the codec is responsible for all runtime type discrimination and for rejecting unsupported payloads safely.
+12. `opts::validator_func` accepts only `bool`, `std::expected<void, json::error_code>`, or `json::expected_void` return types.
+13. Runtime-only `opts::pattern<Predicate>` validation does not automatically imply a schema `pattern`; provide the schema literal explicitly if you need schema projection.
+14. `std::string_view` and `const char*` decode targets depend on the lifetime of the backing `JsonDocument`.
 
 ## Where To Go Next
 

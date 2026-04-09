@@ -70,12 +70,40 @@ Behavior:
    - specialize decoder for Spec and target type pair
 2. custom type encoders
    - specialize encoder for Spec and source type pair
-3. custom validators
+3. explicit codec-bearing specs
+   - wrap any inner spec as `spec::with_codec<InnerSpec, Codec>`
+   - delegation target is `Codec::template decode<InnerSpec, T>(...)` and `Codec::template encode<InnerSpec, T>(...)`
+   - wrapped specs preserve the inner spec's error-context metadata
+   - wrapped specs preserve the inner spec's schema shape unless the codec provides `Codec::template emit_schema<InnerSpec>(...)`
+4. custom validators
    - attach via options
-4. custom discrimination strategy for one_of
+5. custom discrimination strategy for one_of
    - reserved for future work; not part of the shipped v1 surface
-5. custom enum mapping traits
+6. custom enum mapping traits
    - specialize enum string table for project enum types
+
+## Explicit codec wrapper contract
+
+The explicit codec wrapper exists for cases where a project wants the spec declaration itself to choose the codec instead of relying on namespace-scope template specialization lookup.
+
+Wrapper shape:
+
+`spec::with_codec<InnerSpec, Codec>`
+
+Delegation contract:
+
+1. decode
+   - `template <typename InnerSpec, typename T>`
+   - `static std::expected<T, json::error> decode(JsonVariantConst src, const decode_state& state);`
+2. encode
+   - `template <typename InnerSpec, typename T>`
+   - `static std::expected<void, json::error> encode(const T& value, JsonVariant dst, const encode_state& state);`
+3. optional schema hook
+   - `template <typename InnerSpec>`
+   - `static std::expected<void, json::error> emit_schema(JsonVariant dst);`
+   - when absent, schema emission falls back to `InnerSpec`
+
+This is especially useful for erased or runtime-dispatched types such as `std::any`, where the codec can own the discrimination rules and reject ambiguous payloads deterministically.
 
 ## Safety and determinism
 

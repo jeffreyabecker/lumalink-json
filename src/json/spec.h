@@ -27,6 +27,12 @@ struct enum_string : detail::scalar_option_contract<Options...> {
 template <typename... Options>
 struct any : detail::scalar_option_contract<Options...> {};
 
+template <typename InnerSpec, typename Codec>
+struct with_codec {
+    using inner_spec = InnerSpec;
+    using codec_type = Codec;
+};
+
 template <fixed_string Key, typename ValueSpec, typename... Options>
 struct field : detail::field_option_contract<Options...> {
     using value_spec = ValueSpec;
@@ -144,6 +150,16 @@ struct spec_descriptor<spec::any<Options...>> {
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
+};
+
+template <typename InnerSpec, typename Codec>
+struct spec_descriptor<spec::with_codec<InnerSpec, Codec>> {
+    static constexpr node_kind kind = spec_descriptor<InnerSpec>::kind;
+    using name_option = typename spec_descriptor<InnerSpec>::name_option;
+    using min_max_value_option = typename spec_descriptor<InnerSpec>::min_max_value_option;
+    using min_max_elements_option = typename spec_descriptor<InnerSpec>::min_max_elements_option;
+    using pattern_option = typename spec_descriptor<InnerSpec>::pattern_option;
+    using validator_option = typename spec_descriptor<InnerSpec>::validator_option;
 };
 
 template <fixed_string Key, typename ValueSpec, typename... Options>

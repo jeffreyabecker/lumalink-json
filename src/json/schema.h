@@ -28,6 +28,18 @@ struct has_schema_enum_strings : std::false_type {};
 template <typename Enum>
 struct has_schema_enum_strings<Enum, std::void_t<decltype(traits::enum_strings<Enum>::values)>> : std::true_type {};
 
+template <typename Codec, typename InnerSpec, typename = void>
+struct has_wrapped_codec_schema : std::false_type {};
+
+template <typename Codec, typename InnerSpec>
+struct has_wrapped_codec_schema<
+    Codec,
+    InnerSpec,
+    std::void_t<decltype(Codec::template emit_schema<InnerSpec>(std::declval<JsonVariant>()))>> : std::true_type {};
+
+template <typename Codec, typename InnerSpec>
+inline constexpr bool has_wrapped_codec_schema_v = has_wrapped_codec_schema<Codec, InnerSpec>::value;
+
 template <typename Spec>
 void emit_min_max_value_keywords(JsonObject schema) {
     using range_option = typename spec_descriptor<Spec>::min_max_value_option;
@@ -206,6 +218,23 @@ struct schema_emitter<spec::any<Options...>> {
     static expected_void emit(JsonVariant destination) {
         destination.to<JsonObject>();
         return {};
+    }
+};
+
+template <typename InnerSpec, typename Codec>
+struct schema_emitter<spec::with_codec<InnerSpec, Codec>> {
+    static expected_void emit(JsonVariant destination) {
+        if constexpr (has_wrapped_codec_schema_v<Codec, InnerSpec>) {
+            using result_type = std::remove_cv_t<std::remove_reference_t<decltype(
+                Codec::template emit_schema<InnerSpec>(destination))>>;
+            static_assert(
+                std::is_same_v<result_type, expected_void>,
+                "spec::with_codec schema hook must return json::expected_void");
+
+            return Codec::template emit_schema<InnerSpec>(destination);
+        } else {
+            return schema_emitter<InnerSpec>::emit(destination);
+        }
     }
 };
 
