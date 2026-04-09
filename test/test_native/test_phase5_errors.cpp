@@ -56,6 +56,8 @@ struct named_mode_model {
     error_test_mode mode;
 };
 
+using json_error_spec = lumalink::json::spec::error;
+
 using missing_field_spec = lumalink::json::spec::object<
     lumalink::json::spec::field<"required", lumalink::json::spec::integer<>>>;
 using array_size_mismatch_spec = lumalink::json::spec::tuple<
@@ -322,6 +324,63 @@ void test_err_08_validation_error_codes_are_differentiated() {
         static_cast<int>(validation_failure.code));
 }
 
+void test_err_09_builtin_error_spec_serializes_common_error_shape() {
+    lumalink::json::error value{};
+    value.code = lumalink::json::error_code::unexpected_type;
+    value.context.entries[0] = lumalink::json::error_context_entry{
+        lumalink::json::node_kind::field,
+        "selected_mode",
+        "mode",
+        0U,
+        false};
+    value.context.entries[1] = lumalink::json::error_context_entry{
+        lumalink::json::node_kind::object,
+        {},
+        {},
+        0U,
+        false};
+    value.context.size = 2U;
+    value.message = "expected object";
+    value.backend_status = 17;
+
+    JsonDocument document;
+    lumalink::json::test_support::assert_expected_success(lumalink::json::serialize<json_error_spec>(value, document));
+
+    std::string serialized;
+    TEST_ASSERT_GREATER_THAN_UINT32(0U, static_cast<uint32_t>(serializeJson(document, serialized)));
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"code\":\"unexpected_type\",\"context\":[{\"kind\":\"field\",\"logical_name\":\"selected_mode\",\"field_key\":\"mode\"},{\"kind\":\"object\"}],\"message\":\"expected object\",\"backend_status\":17}",
+        serialized.c_str());
+}
+
+void test_err_10_builtin_error_spec_round_trips_context_entries() {
+    lumalink::json::test_support::native_fixture fixture;
+    fixture.parse_or_fail(
+        R"({"code":"unexpected_type","context":[{"kind":"array_of","index":3},{"kind":"field","field_key":"history"}],"message":"expected integer","backend_status":9})");
+
+    const auto result = lumalink::json::deserialize<lumalink::json::error, json_error_spec>(fixture.root());
+    const auto& decoded = lumalink::json::test_support::assert_expected_success(result);
+
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(lumalink::json::error_code::unexpected_type),
+        static_cast<int>(decoded.code));
+    TEST_ASSERT_EQUAL_UINT32(2U, static_cast<uint32_t>(decoded.context.size));
+    lumalink::json::test_support::assert_error_context_entry(
+        decoded,
+        0U,
+        lumalink::json::node_kind::array_of,
+        {},
+        {},
+        3U);
+    lumalink::json::test_support::assert_error_context_entry(
+        decoded,
+        1U,
+        lumalink::json::node_kind::field,
+        "history");
+    TEST_ASSERT_EQUAL_STRING("expected integer", std::string(decoded.message).c_str());
+    TEST_ASSERT_EQUAL_INT(9, decoded.backend_status);
+}
+
 void run_phase5_error_tests() {
     RUN_TEST(test_err_01_every_supported_runtime_error_code_is_covered);
     RUN_TEST(test_err_02_full_context_policy_retains_full_path);
@@ -331,4 +390,6 @@ void run_phase5_error_tests() {
     RUN_TEST(test_err_06_nested_object_array_tuple_scalar_context_is_index_aware);
     RUN_TEST(test_err_07_enum_mapping_failures_include_node_kind_field_key_and_logical_name);
     RUN_TEST(test_err_08_validation_error_codes_are_differentiated);
+    RUN_TEST(test_err_09_builtin_error_spec_serializes_common_error_shape);
+    RUN_TEST(test_err_10_builtin_error_spec_round_trips_context_entries);
 }

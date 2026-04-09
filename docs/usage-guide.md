@@ -110,6 +110,7 @@ The shipped v1 node surface maps to the following C++ categories.
 | `spec::array_of<T>` | append containers with `value_type`, `push_back`, `size`, `begin`, `end` |
 | `spec::tuple<...>` | `std::tuple<...>` with matching arity |
 | `spec::one_of<...>` | `std::variant<...>` with matching order and arity |
+| `spec::error` | `json::error` |
 
 ### Null, Boolean, Integer, Number
 
@@ -256,6 +257,33 @@ lumalink::json::serialize<readings_spec>(std::vector<int>{1, 2, 3}, encoded);
 ### Tuples
 
 `spec::tuple` maps to `std::tuple` and requires exact positional arity.
+
+### Built-In Error Payload
+
+`spec::error` provides a predefined wire shape for `json::error`, including the mapped `error_code`, the active context entries, the optional message, and the optional backend status.
+
+```cpp
+lumalink::json::error failure{
+        lumalink::json::error_code::unexpected_type,
+        {},
+        "expected object",
+        17,
+};
+
+JsonDocument document;
+lumalink::json::serialize<lumalink::json::spec::error>(failure, document);
+```
+
+The encoded JSON shape is:
+
+```json
+{
+    "code": "unexpected_type",
+    "context": [],
+    "message": "expected object",
+    "backend_status": 17
+}
+```
 
 ```cpp
 using triple_spec = lumalink::json::spec::tuple<

@@ -7,6 +7,8 @@
 #include <expected>
 #include <string_view>
 
+#include <json/traits.h>
+
 namespace lumalink::json {
 
 template <size_t N>
@@ -111,6 +113,51 @@ struct decode_state {
 struct encode_state {
     context_policy context{context_policy::full};
 };
+
+namespace traits {
+
+template <>
+struct enum_strings<error_code> {
+    static constexpr std::array<enum_mapping_entry<error_code>, 15> values{{
+        {"ok", error_code::ok},
+        {"missing_field", error_code::missing_field},
+        {"unexpected_type", error_code::unexpected_type},
+        {"array_size_mismatch", error_code::array_size_mismatch},
+        {"validation_failed", error_code::validation_failed},
+        {"value_out_of_range", error_code::value_out_of_range},
+        {"pattern_mismatch", error_code::pattern_mismatch},
+        {"enum_string_unknown", error_code::enum_string_unknown},
+        {"enum_value_unmapped", error_code::enum_value_unmapped},
+        {"empty_input", error_code::empty_input},
+        {"incomplete_input", error_code::incomplete_input},
+        {"invalid_input", error_code::invalid_input},
+        {"no_memory", error_code::no_memory},
+        {"too_deep", error_code::too_deep},
+        {"not_implemented", error_code::not_implemented},
+    }};
+};
+
+template <>
+struct enum_strings<node_kind> {
+    static constexpr std::array<enum_mapping_entry<node_kind>, 14> values{{
+        {"unknown", node_kind::unknown},
+        {"null", node_kind::null_value},
+        {"boolean", node_kind::boolean},
+        {"integer", node_kind::integer},
+        {"number", node_kind::number},
+        {"string", node_kind::string},
+        {"enum_string", node_kind::enum_string},
+        {"any", node_kind::any},
+        {"field", node_kind::field},
+        {"object", node_kind::object},
+        {"array_of", node_kind::array_of},
+        {"tuple", node_kind::tuple},
+        {"optional", node_kind::optional},
+        {"one_of", node_kind::one_of},
+    }};
+};
+
+} // namespace traits
 
 constexpr error with_context(
     error value,

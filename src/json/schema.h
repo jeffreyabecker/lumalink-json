@@ -274,6 +274,94 @@ struct schema_emitter<spec::optional<ValueSpec>> {
     }
 };
 
+template <>
+struct schema_emitter<spec::error_context_entry> {
+    static expected_void emit(JsonVariant destination) {
+        JsonObject schema = destination.to<JsonObject>();
+        schema["type"] = "object";
+
+        JsonObject properties = schema["properties"].template to<JsonObject>();
+
+        JsonVariant kind_schema = properties["kind"].template to<JsonVariant>();
+        auto kind_result = schema_emitter<spec::enum_string<node_kind>>::emit(kind_schema);
+        if (!kind_result.has_value()) {
+            return kind_result;
+        }
+
+        JsonVariant logical_name_schema = properties["logical_name"].template to<JsonVariant>();
+        auto logical_name_result = schema_emitter<spec::string<>>::emit(logical_name_schema);
+        if (!logical_name_result.has_value()) {
+            return logical_name_result;
+        }
+
+        JsonVariant field_key_schema = properties["field_key"].template to<JsonVariant>();
+        auto field_key_result = schema_emitter<spec::string<>>::emit(field_key_schema);
+        if (!field_key_result.has_value()) {
+            return field_key_result;
+        }
+
+        JsonVariant index_schema = properties["index"].template to<JsonVariant>();
+        auto index_result = schema_emitter<spec::integer<>>::emit(index_schema);
+        if (!index_result.has_value()) {
+            return index_result;
+        }
+
+        JsonArray required = schema["required"].template to<JsonArray>();
+        required.add("kind");
+        return {};
+    }
+};
+
+template <>
+struct schema_emitter<spec::error_context> {
+    static expected_void emit(JsonVariant destination) {
+        JsonObject schema = destination.to<JsonObject>();
+        schema["type"] = "array";
+
+        JsonVariant item_schema = schema["items"].template to<JsonVariant>();
+        return schema_emitter<spec::error_context_entry>::emit(item_schema);
+    }
+};
+
+template <>
+struct schema_emitter<spec::error> {
+    static expected_void emit(JsonVariant destination) {
+        JsonObject schema = destination.to<JsonObject>();
+        schema["type"] = "object";
+
+        JsonObject properties = schema["properties"].template to<JsonObject>();
+
+        JsonVariant code_schema = properties["code"].template to<JsonVariant>();
+        auto code_result = schema_emitter<spec::enum_string<error_code>>::emit(code_schema);
+        if (!code_result.has_value()) {
+            return code_result;
+        }
+
+        JsonVariant context_schema = properties["context"].template to<JsonVariant>();
+        auto context_result = schema_emitter<spec::error_context>::emit(context_schema);
+        if (!context_result.has_value()) {
+            return context_result;
+        }
+
+        JsonVariant message_schema = properties["message"].template to<JsonVariant>();
+        auto message_result = schema_emitter<spec::string<>>::emit(message_schema);
+        if (!message_result.has_value()) {
+            return message_result;
+        }
+
+        JsonVariant backend_status_schema = properties["backend_status"].template to<JsonVariant>();
+        auto backend_status_result = schema_emitter<spec::integer<>>::emit(backend_status_schema);
+        if (!backend_status_result.has_value()) {
+            return backend_status_result;
+        }
+
+        JsonArray required = schema["required"].template to<JsonArray>();
+        required.add("code");
+        required.add("context");
+        return {};
+    }
+};
+
 template <typename... Specs>
 struct schema_emitter<spec::one_of<Specs...>> {
     static expected_void emit(JsonVariant destination) {

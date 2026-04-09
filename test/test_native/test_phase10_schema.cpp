@@ -49,6 +49,7 @@ using enum_schema_spec = lumalink::json::spec::enum_string<schema_mode>;
 using bounded_integer_schema_spec = lumalink::json::spec::integer<lumalink::json::opts::min_max_value<10, 20>>;
 using patterned_string_schema_spec =
     lumalink::json::spec::string<lumalink::json::opts::pattern<is_uppercase_schema_value, "^[A-Z]+$">>;
+using error_schema_spec = lumalink::json::spec::error;
 
 std::string serialize_schema_or_fail(const JsonDocument& document) {
     std::string serialized;
@@ -186,6 +187,16 @@ void test_sch_06_schema_generation_writes_to_caller_provided_document() {
     TEST_ASSERT_EQUAL_STRING("{\"type\":\"boolean\"}", serialize_schema_or_fail(schema).c_str());
 }
 
+void test_sch_07_builtin_error_spec_emits_common_error_schema() {
+    JsonDocument schema;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::generate_schema<error_schema_spec>(schema));
+
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"type\":\"object\",\"properties\":{\"code\":{\"type\":\"string\",\"enum\":[\"ok\",\"missing_field\",\"unexpected_type\",\"array_size_mismatch\",\"validation_failed\",\"value_out_of_range\",\"pattern_mismatch\",\"enum_string_unknown\",\"enum_value_unmapped\",\"empty_input\",\"incomplete_input\",\"invalid_input\",\"no_memory\",\"too_deep\",\"not_implemented\"]},\"context\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"unknown\",\"null\",\"boolean\",\"integer\",\"number\",\"string\",\"enum_string\",\"any\",\"field\",\"object\",\"array_of\",\"tuple\",\"optional\",\"one_of\"]},\"logical_name\":{\"type\":\"string\"},\"field_key\":{\"type\":\"string\"},\"index\":{\"type\":\"integer\"}},\"required\":[\"kind\"]}},\"message\":{\"type\":\"string\"},\"backend_status\":{\"type\":\"integer\"}},\"required\":[\"code\",\"context\"]}",
+        serialize_schema_or_fail(schema).c_str());
+}
+
 void run_phase10_schema_tests() {
     RUN_TEST(test_sch_01_scalar_nodes_emit_type_declarations);
     RUN_TEST(test_sch_02_field_and_object_emit_properties_required_and_stable_order);
@@ -193,4 +204,5 @@ void run_phase10_schema_tests() {
     RUN_TEST(test_sch_04_enum_string_mappings_emit_enum_token_arrays);
     RUN_TEST(test_sch_05_supported_options_project_schema_keywords);
     RUN_TEST(test_sch_06_schema_generation_writes_to_caller_provided_document);
+    RUN_TEST(test_sch_07_builtin_error_spec_emits_common_error_schema);
 }

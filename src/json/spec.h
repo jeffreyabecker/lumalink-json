@@ -63,6 +63,12 @@ struct one_of {
     static_assert(sizeof...(Specs) > 0U, "spec::one_of requires at least one child spec");
 };
 
+struct error_context_entry {};
+
+struct error_context {};
+
+struct error {};
+
 } // namespace lumalink::json::spec
 
 namespace lumalink::json::detail {
@@ -193,6 +199,36 @@ struct spec_descriptor<spec::optional<ValueSpec>> {
 template <typename... Specs>
 struct spec_descriptor<spec::one_of<Specs...>> {
     static constexpr node_kind kind = node_kind::one_of;
+    using name_option = void;
+    using min_max_value_option = void;
+    using min_max_elements_option = void;
+    using pattern_option = void;
+    using validator_option = void;
+};
+
+template <>
+struct spec_descriptor<spec::error_context_entry> {
+    static constexpr node_kind kind = node_kind::object;
+    using name_option = void;
+    using min_max_value_option = void;
+    using min_max_elements_option = void;
+    using pattern_option = void;
+    using validator_option = void;
+};
+
+template <>
+struct spec_descriptor<spec::error_context> {
+    static constexpr node_kind kind = node_kind::array_of;
+    using name_option = void;
+    using min_max_value_option = void;
+    using min_max_elements_option = void;
+    using pattern_option = void;
+    using validator_option = void;
+};
+
+template <>
+struct spec_descriptor<spec::error> {
+    static constexpr node_kind kind = node_kind::object;
     using name_option = void;
     using min_max_value_option = void;
     using min_max_elements_option = void;

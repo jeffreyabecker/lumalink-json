@@ -14,6 +14,72 @@
 
 namespace lumalink::json::detail {
 
+template <typename Spec>
+expected<std::string_view> required_string_member(
+    const JsonObjectConst source,
+    const char* key,
+    const decode_state& state,
+    const std::string_view message = "missing field") {
+    const JsonVariantConst member = source[key];
+    if (member.isUnbound()) {
+        return std::unexpected(make_error<Spec>(error_code::missing_field, state.context, message));
+    }
+
+    if (!member.is<const char*>()) {
+        return std::unexpected(make_error<Spec>(error_code::unexpected_type, state.context, "expected string"));
+    }
+
+    return std::string_view(member.as<const char*>());
+}
+
+template <typename Spec>
+expected<std::string_view> optional_string_member(const JsonObjectConst source, const char* key, const decode_state& state) {
+    const JsonVariantConst member = source[key];
+    if (member.isUnbound()) {
+        return std::string_view{};
+    }
+
+    if (!member.is<const char*>()) {
+        return std::unexpected(make_error<Spec>(error_code::unexpected_type, state.context, "expected string"));
+    }
+
+    return std::string_view(member.as<const char*>());
+}
+
+template <typename Spec>
+expected<int> optional_int_member(const JsonObjectConst source, const char* key, const decode_state& state) {
+    const JsonVariantConst member = source[key];
+    if (member.isUnbound()) {
+        return 0;
+    }
+
+    if (!member.is<int>()) {
+        return std::unexpected(make_error<Spec>(error_code::unexpected_type, state.context, "expected integer"));
+    }
+
+    return member.as<int>();
+}
+
+template <typename Spec>
+expected<size_t> optional_index_member(
+    const JsonObjectConst source,
+    const char* key,
+    bool& has_index,
+    const decode_state& state) {
+    const JsonVariantConst member = source[key];
+    if (member.isUnbound()) {
+        has_index = false;
+        return 0U;
+    }
+
+    if (!member.is<unsigned long long>()) {
+        return std::unexpected(make_error<Spec>(error_code::unexpected_type, state.context, "expected unsigned index"));
+    }
+
+    has_index = true;
+    return static_cast<size_t>(member.as<unsigned long long>());
+}
+
 inline constexpr size_t pfr_arity_limit = 200;
 
 template <typename Spec>
@@ -477,6 +543,222 @@ expected_void encode_one_of_alternatives(const Variant& value, JsonVariant desti
 } // namespace lumalink::json::detail
 
 namespace lumalink::json {
+
+template <>
+struct decoder<spec::error_context_entry, error_context_entry> {
+    static expected<error_context_entry> decode(const JsonVariantConst source, const decode_state& state) {
+        if (!source.is<JsonObjectConst>()) {
+            return std::unexpected(detail::make_error<spec::error_context_entry>(
+                error_code::unexpected_type,
+                state.context,
+                "expected object"));
+        }
+
+        const JsonObjectConst object = source.as<JsonObjectConst>();
+        auto kind_token = detail::required_string_member<spec::error_context_entry>(object, "kind", state);
+        if (!kind_token.has_value()) {
+            return std::unexpected(kind_token.error());
+        }
+
+        auto kind = detail::decode_enum_token<node_kind>(
+            *kind_token,
+            state.context,
+            detail::spec_descriptor<spec::error_context_entry>::kind,
+            {});
+        if (!kind.has_value()) {
+            return std::unexpected(kind.error());
+        }
+
+        auto logical_name = detail::optional_string_member<spec::error_context_entry>(object, "logical_name", state);
+        if (!logical_name.has_value()) {
+            return std::unexpected(logical_name.error());
+        }
+
+        auto field_key = detail::optional_string_member<spec::error_context_entry>(object, "field_key", state);
+        if (!field_key.has_value()) {
+            return std::unexpected(field_key.error());
+        }
+
+        bool has_index = false;
+        auto index = detail::optional_index_member<spec::error_context_entry>(object, "index", has_index, state);
+        if (!index.has_value()) {
+            return std::unexpected(index.error());
+        }
+
+        return error_context_entry{*kind, *logical_name, *field_key, *index, has_index};
+    }
+};
+
+template <>
+struct encoder<spec::error_context_entry, error_context_entry> {
+    static expected_void encode(const error_context_entry& value, JsonVariant destination, const encode_state& state) {
+        JsonObject object = destination.to<JsonObject>();
+
+        auto kind_token = detail::encode_enum_value(
+            value.kind,
+            state.context,
+            detail::spec_descriptor<spec::error_context_entry>::kind,
+            {});
+        if (!kind_token.has_value()) {
+            return std::unexpected(kind_token.error());
+        }
+
+        object["kind"] = std::string(*kind_token);
+        if (!value.logical_name.empty()) {
+            object["logical_name"] = std::string(value.logical_name);
+        }
+        if (!value.field_key.empty()) {
+            object["field_key"] = std::string(value.field_key);
+        }
+        if (value.has_index) {
+            object["index"] = static_cast<unsigned long long>(value.index);
+        }
+
+        return {};
+    }
+};
+
+template <>
+struct decoder<spec::error_context, error_context> {
+    static expected<error_context> decode(const JsonVariantConst source, const decode_state& state) {
+        if (!source.is<JsonArrayConst>()) {
+            return std::unexpected(detail::make_error<spec::error_context>(
+                error_code::unexpected_type,
+                state.context,
+                "expected array"));
+        }
+
+        const JsonArrayConst array = source.as<JsonArrayConst>();
+        if (array.size() > error_context_capacity) {
+            return std::unexpected(detail::make_error<spec::error_context>(
+                error_code::array_size_mismatch,
+                state.context,
+                "error context exceeds fixed capacity"));
+        }
+
+        error_context value{};
+        size_t index = 0U;
+        for (const JsonVariantConst entry_source : array) {
+            auto decoded = decoder<spec::error_context_entry, error_context_entry>::decode(entry_source, state);
+            if (!decoded.has_value()) {
+                const auto indexed_error = detail::annotate_index<spec::error_context>(decoded.error(), index, state.context);
+                return std::unexpected(detail::annotate<spec::error_context>(indexed_error, state.context));
+            }
+
+            value.entries[index] = *decoded;
+            ++index;
+        }
+
+        value.size = index;
+        return value;
+    }
+};
+
+template <>
+struct encoder<spec::error_context, error_context> {
+    static expected_void encode(const error_context& value, JsonVariant destination, const encode_state& state) {
+        JsonArray array = destination.to<JsonArray>();
+        for (size_t index = 0U; index < value.size; ++index) {
+            JsonVariant entry_destination = array.add<JsonVariant>();
+            auto encoded = encoder<spec::error_context_entry, error_context_entry>::encode(
+                value.entries[index],
+                entry_destination,
+                state);
+            if (!encoded.has_value()) {
+                const auto indexed_error = detail::annotate_index<spec::error_context>(encoded.error(), index, state.context);
+                return std::unexpected(detail::annotate<spec::error_context>(indexed_error, state.context));
+            }
+        }
+
+        return {};
+    }
+};
+
+template <>
+struct decoder<spec::error, error> {
+    static expected<error> decode(const JsonVariantConst source, const decode_state& state) {
+        if (!source.is<JsonObjectConst>()) {
+            return std::unexpected(detail::make_error<spec::error>(
+                error_code::unexpected_type,
+                state.context,
+                "expected object"));
+        }
+
+        const JsonObjectConst object = source.as<JsonObjectConst>();
+        auto code_token = detail::required_string_member<spec::error>(object, "code", state);
+        if (!code_token.has_value()) {
+            return std::unexpected(code_token.error());
+        }
+
+        auto code = detail::decode_enum_token<error_code>(
+            *code_token,
+            state.context,
+            detail::spec_descriptor<spec::error>::kind,
+            {});
+        if (!code.has_value()) {
+            return std::unexpected(code.error());
+        }
+
+        error value{};
+        value.code = *code;
+
+        const JsonVariantConst context_source = object["context"];
+        if (!context_source.isUnbound()) {
+            auto context = decoder<spec::error_context, error_context>::decode(context_source, state);
+            if (!context.has_value()) {
+                return std::unexpected(context.error());
+            }
+            value.context = *context;
+        }
+
+        auto message = detail::optional_string_member<spec::error>(object, "message", state);
+        if (!message.has_value()) {
+            return std::unexpected(message.error());
+        }
+        value.message = *message;
+
+        auto backend_status = detail::optional_int_member<spec::error>(object, "backend_status", state);
+        if (!backend_status.has_value()) {
+            return std::unexpected(backend_status.error());
+        }
+        value.backend_status = *backend_status;
+
+        return value;
+    }
+};
+
+template <>
+struct encoder<spec::error, error> {
+    static expected_void encode(const error& value, JsonVariant destination, const encode_state& state) {
+        JsonObject object = destination.to<JsonObject>();
+
+        auto code_token = detail::encode_enum_value(
+            value.code,
+            state.context,
+            detail::spec_descriptor<spec::error>::kind,
+            {});
+        if (!code_token.has_value()) {
+            return std::unexpected(code_token.error());
+        }
+
+        object["code"] = std::string(*code_token);
+
+        JsonVariant context_destination = object["context"].template to<JsonVariant>();
+        auto encoded_context = encoder<spec::error_context, error_context>::encode(value.context, context_destination, state);
+        if (!encoded_context.has_value()) {
+            return std::unexpected(encoded_context.error());
+        }
+
+        if (!value.message.empty()) {
+            object["message"] = std::string(value.message);
+        }
+        if (value.backend_status != 0) {
+            object["backend_status"] = value.backend_status;
+        }
+
+        return {};
+    }
+};
 
 template <typename... Fields, typename T>
 struct decoder<spec::object<Fields...>, T> {
