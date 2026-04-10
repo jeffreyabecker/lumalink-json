@@ -53,11 +53,13 @@ inline constexpr bool is_supported_string_target_v =
     std::is_same_v<remove_cvref_t<T>, std::string_view> ||
     std::is_same_v<remove_cvref_t<T>, const char*>;
 
-template <typename Enum, typename = void>
-struct has_enum_strings : std::false_type {};
+template <typename EnumOrCodec, typename = void>
+struct has_enum_mapping : std::false_type {};
 
-template <typename Enum>
-struct has_enum_strings<Enum, std::void_t<decltype(traits::enum_strings<Enum>::values)>> : std::true_type {};
+template <typename EnumOrCodec>
+struct has_enum_mapping<
+    EnumOrCodec,
+    std::void_t<decltype(detail::enum_mapping_provider<EnumOrCodec>::values())>> : std::true_type {};
 
 template <typename Spec>
 constexpr std::string_view logical_name_v = []() constexpr {
@@ -227,15 +229,19 @@ template <typename Target, typename Spec>
     return source.is<float>() || source.is<double>() || source.is<long long>() || source.is<unsigned long long>();
 }
 
-template <typename Enum>
-[[nodiscard]] expected<Enum> decode_enum_token(
+template <typename EnumOrCodec>
+[[nodiscard]] expected<typename detail::enum_mapping_enum_t<EnumOrCodec>> decode_enum_token(
     const std::string_view token,
     const context_policy policy,
     const node_kind kind,
     const std::string_view logical_name) {
-    static_assert(has_enum_strings<Enum>::value, "enum_string requires json::traits::enum_strings specialization");
+    using mapping_provider = detail::enum_mapping_provider<EnumOrCodec>;
 
-    for (const auto& entry : traits::enum_strings<Enum>::values) {
+    static_assert(
+        has_enum_mapping<EnumOrCodec>::value,
+        "enum_string requires either json::traits::enum_strings specialization or a lumalink::json::enum_codec-derived type with values");
+
+    for (const auto& entry : mapping_provider::values()) {
         if (entry.token == token) {
             return entry.value;
         }
@@ -247,15 +253,19 @@ template <typename Enum>
         policy));
 }
 
-template <typename Enum>
+template <typename EnumOrCodec>
 [[nodiscard]] expected<std::string_view> encode_enum_value(
-    const Enum value,
+    const detail::enum_mapping_enum_t<EnumOrCodec> value,
     const context_policy policy,
     const node_kind kind,
     const std::string_view logical_name) {
-    static_assert(has_enum_strings<Enum>::value, "enum_string requires json::traits::enum_strings specialization");
+    using mapping_provider = detail::enum_mapping_provider<EnumOrCodec>;
 
-    for (const auto& entry : traits::enum_strings<Enum>::values) {
+    static_assert(
+        has_enum_mapping<EnumOrCodec>::value,
+        "enum_string requires either json::traits::enum_strings specialization or a lumalink::json::enum_codec-derived type with values");
+
+    for (const auto& entry : mapping_provider::values()) {
         if (entry.value == value) {
             return entry.token;
         }
@@ -569,11 +579,13 @@ struct encoder<spec::string<Options...>, T, std::enable_if_t<detail::is_supporte
     }
 };
 
-template <typename Enum, typename... Options>
-struct decoder<spec::enum_string<Enum, Options...>, Enum> {
-    static expected<Enum> decode(const JsonVariantConst source, const decode_state& state) {
+template <typename EnumOrCodec, typename... Options>
+struct decoder<spec::enum_string<EnumOrCodec, Options...>, detail::enum_mapping_enum_t<EnumOrCodec>> {
+    using enum_type = detail::enum_mapping_enum_t<EnumOrCodec>;
+
+    static expected<enum_type> decode(const JsonVariantConst source, const decode_state& state) {
         if (!source.is<const char*>()) {
-            return std::unexpected(detail::make_error<spec::enum_string<Enum, Options...>>(
+            return std::unexpected(detail::make_error<spec::enum_string<EnumOrCodec, Options...>>(
                 error_code::unexpected_type,
                 state.context,
                 "expected enum string token"));
@@ -581,22 +593,24 @@ struct decoder<spec::enum_string<Enum, Options...>, Enum> {
 
         const char* raw = source.as<const char*>();
         if (raw == nullptr) {
-            return std::unexpected(detail::make_error<spec::enum_string<Enum, Options...>>(
+            return std::unexpected(detail::make_error<spec::enum_string<EnumOrCodec, Options...>>(
                 error_code::unexpected_type,
                 state.context,
                 "expected enum string token"));
         }
 
-        auto decoded = detail::decode_enum_token<Enum>(
+        auto decoded = detail::decode_enum_token<EnumOrCodec>(
             std::string_view{raw, std::strlen(raw)},
             state.context,
             node_kind::enum_string,
-            detail::logical_name_v<spec::enum_string<Enum, Options...>>);
+            detail::logical_name_v<spec::enum_string<EnumOrCodec, Options...>>);
         if (!decoded.has_value()) {
             return std::unexpected(decoded.error());
         }
 
-        const auto validation_result = detail::run_validator<spec::enum_string<Enum, Options...>>(*decoded, state.context);
+        const auto validation_result = detail::run_validator<spec::enum_string<EnumOrCodec, Options...>>(
+            *decoded,
+            state.context);
         if (!validation_result.has_value()) {
             return std::unexpected(validation_result.error());
         }
@@ -605,19 +619,23 @@ struct decoder<spec::enum_string<Enum, Options...>, Enum> {
     }
 };
 
-template <typename Enum, typename... Options>
-struct encoder<spec::enum_string<Enum, Options...>, Enum> {
-    static expected_void encode(const Enum value, JsonVariant destination, const encode_state& state) {
-        const auto token_result = detail::encode_enum_value<Enum>(
+template <typename EnumOrCodec, typename... Options>
+struct encoder<spec::enum_string<EnumOrCodec, Options...>, detail::enum_mapping_enum_t<EnumOrCodec>> {
+    using enum_type = detail::enum_mapping_enum_t<EnumOrCodec>;
+
+    static expected_void encode(const enum_type value, JsonVariant destination, const encode_state& state) {
+        const auto token_result = detail::encode_enum_value<EnumOrCodec>(
             value,
             state.context,
             node_kind::enum_string,
-            detail::logical_name_v<spec::enum_string<Enum, Options...>>);
+            detail::logical_name_v<spec::enum_string<EnumOrCodec, Options...>>);
         if (!token_result.has_value()) {
             return std::unexpected(token_result.error());
         }
 
-        const auto validation_result = detail::run_validator<spec::enum_string<Enum, Options...>>(value, state.context);
+        const auto validation_result = detail::run_validator<spec::enum_string<EnumOrCodec, Options...>>(
+            value,
+            state.context);
         if (!validation_result.has_value()) {
             return std::unexpected(validation_result.error());
         }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <json/options.h>
+#include <json/traits.h>
 
 namespace lumalink::json::spec {
 
@@ -19,9 +20,9 @@ struct number : detail::scalar_option_contract<Options...> {};
 template <typename... Options>
 struct string : detail::scalar_option_contract<Options...> {};
 
-template <typename Enum, typename... Options>
+template <typename EnumOrCodec, typename... Options>
 struct enum_string : detail::scalar_option_contract<Options...> {
-    using enum_type = Enum;
+    using enum_type = detail::enum_mapping_enum_t<EnumOrCodec>;
 };
 
 template <typename... Options>
@@ -132,8 +133,8 @@ struct spec_descriptor<spec::string<Options...>> {
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
-template <typename Enum, typename... Options>
-struct spec_descriptor<spec::enum_string<Enum, Options...>> {
+template <typename EnumOrCodec, typename... Options>
+struct spec_descriptor<spec::enum_string<EnumOrCodec, Options...>> {
     static constexpr node_kind kind = node_kind::enum_string;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;

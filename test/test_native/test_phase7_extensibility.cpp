@@ -63,6 +63,14 @@ struct tagged_payload_base {
     tagged_payload_kind discriminator;
 };
 
+struct project_wire_mode_codec : lumalink::json::enum_codec<project_wire_mode_codec, project_wire_mode> {
+    static constexpr std::array<lumalink::json::traits::enum_mapping_entry<project_wire_mode>, 3> values{{
+        {"standby", project_wire_mode::standby},
+        {"active", project_wire_mode::active},
+        {"maintenance", project_wire_mode::maintenance},
+    }};
+};
+
 struct tagged_counter_payload : tagged_payload_base {
     tagged_counter_payload() : tagged_payload_base(tagged_payload_kind::counter) {}
     explicit tagged_counter_payload(const int count_value)
@@ -90,7 +98,7 @@ struct tagged_endpoint_payload : tagged_payload_base {
 };
 
 using project_token_spec = lumalink::json::spec::string<>;
-using project_mode_spec = lumalink::json::spec::enum_string<project_wire_mode>;
+using project_mode_spec = lumalink::json::spec::enum_string<project_wire_mode_codec>;
 using project_endpoint_spec = lumalink::json::spec::object<
     lumalink::json::spec::field<"token", project_token_spec>,
     lumalink::json::spec::field<"mode", project_mode_spec>>;
@@ -528,15 +536,6 @@ struct object_fields<tagged_message_payload> {
 template <>
 struct object_fields<tagged_endpoint_payload> {
     static constexpr auto members = std::make_tuple(&tagged_endpoint_payload::token, &tagged_endpoint_payload::mode);
-};
-
-template <>
-struct enum_strings<project_wire_mode> {
-    static constexpr std::array<enum_mapping_entry<project_wire_mode>, 3> values{{
-        {"standby", project_wire_mode::standby},
-        {"active", project_wire_mode::active},
-        {"maintenance", project_wire_mode::maintenance},
-    }};
 };
 
 } // namespace lumalink::json::traits

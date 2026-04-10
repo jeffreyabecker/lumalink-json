@@ -22,11 +22,13 @@ struct is_schema_optional_spec<spec::optional<ValueSpec>> : std::true_type {};
 template <typename Spec>
 inline constexpr bool is_schema_optional_spec_v = is_schema_optional_spec<Spec>::value;
 
-template <typename Enum, typename = void>
-struct has_schema_enum_strings : std::false_type {};
+template <typename EnumOrCodec, typename = void>
+struct has_schema_enum_mapping : std::false_type {};
 
-template <typename Enum>
-struct has_schema_enum_strings<Enum, std::void_t<decltype(traits::enum_strings<Enum>::values)>> : std::true_type {};
+template <typename EnumOrCodec>
+struct has_schema_enum_mapping<
+    EnumOrCodec,
+    std::void_t<decltype(detail::enum_mapping_provider<EnumOrCodec>::values())>> : std::true_type {};
 
 template <typename Codec, typename InnerSpec, typename = void>
 struct has_wrapped_codec_schema : std::false_type {};
@@ -194,18 +196,20 @@ struct schema_emitter<spec::string<Options...>> {
     }
 };
 
-template <typename Enum, typename... Options>
-struct schema_emitter<spec::enum_string<Enum, Options...>> {
+template <typename EnumOrCodec, typename... Options>
+struct schema_emitter<spec::enum_string<EnumOrCodec, Options...>> {
     static expected_void emit(JsonVariant destination) {
         static_assert(
-            has_schema_enum_strings<Enum>::value,
-            "enum_string requires json::traits::enum_strings specialization for schema generation");
+            has_schema_enum_mapping<EnumOrCodec>::value,
+            "enum_string requires either json::traits::enum_strings specialization or a lumalink::json::enum_codec-derived type with values for schema generation");
+
+        using mapping_provider = detail::enum_mapping_provider<EnumOrCodec>;
 
         JsonObject schema = destination.to<JsonObject>();
         schema["type"] = "string";
 
         JsonArray enum_values = schema["enum"].template to<JsonArray>();
-        for (const auto& entry : traits::enum_strings<Enum>::values) {
+        for (const auto& entry : mapping_provider::values()) {
             enum_values.add(std::string(entry.token));
         }
 

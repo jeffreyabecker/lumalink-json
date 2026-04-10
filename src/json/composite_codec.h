@@ -594,7 +594,7 @@ struct encoder<spec::error_context_entry, error_context_entry> {
     static expected_void encode(const error_context_entry& value, JsonVariant destination, const encode_state& state) {
         JsonObject object = destination.to<JsonObject>();
 
-        auto kind_token = detail::encode_enum_value(
+        auto kind_token = detail::encode_enum_value<node_kind>(
             value.kind,
             state.context,
             detail::spec_descriptor<spec::error_context_entry>::kind,
@@ -732,7 +732,7 @@ struct encoder<spec::error, error> {
     static expected_void encode(const error& value, JsonVariant destination, const encode_state& state) {
         JsonObject object = destination.to<JsonObject>();
 
-        auto code_token = detail::encode_enum_value(
+        auto code_token = detail::encode_enum_value<error_code>(
             value.code,
             state.context,
             detail::spec_descriptor<spec::error>::kind,

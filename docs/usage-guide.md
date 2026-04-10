@@ -103,7 +103,7 @@ The shipped v1 node surface maps to the following C++ categories.
 | `spec::integer<>` | any integral type except `bool` |
 | `spec::number<>` | any floating-point type |
 | `spec::string<>` | `std::string`, `std::string_view`, `const char*` |
-| `spec::enum_string<E>` | enum `E` with `json::traits::enum_strings<E>` |
+| `spec::enum_string<E>` | enum `E` with `json::traits::enum_strings<E>` or a `json::enum_codec` type |
 | `spec::any<>` | `JsonVariantConst` |
 | `spec::with_codec<InnerSpec, Codec>` | any `T` that `Codec` explicitly supports |
 | `spec::object<...>` | aggregate class/struct models, or models with `json::traits::object_fields<Model>` |
@@ -170,6 +170,27 @@ enum class mode : unsigned char {
     maintenance,
 };
 
+struct mode_codec : lumalink::json::enum_codec<mode_codec, mode> {
+    static constexpr std::array<lumalink::json::traits::enum_mapping_entry<mode>, 3> values{{
+        {"standby", mode::standby},
+        {"active", mode::active},
+        {"maintenance", mode::maintenance},
+    }};
+};
+
+using mode_spec = lumalink::json::spec::enum_string<mode_codec>;
+
+auto decoded = lumalink::json::deserialize<mode, mode_spec>(R"("active")");
+
+JsonDocument encoded;
+lumalink::json::serialize<mode_spec>(mode::maintenance, encoded);
+```
+
+This is the preferred authoring path because it keeps the string mapping next to a concrete codec type in user code rather than requiring a specialization in `lumalink::json::traits`.
+
+The legacy trait-based path is still supported:
+
+```cpp
 namespace lumalink::json::traits {
 
 template <>
@@ -183,12 +204,7 @@ struct enum_strings<mode> {
 
 } // namespace lumalink::json::traits
 
-using mode_spec = lumalink::json::spec::enum_string<mode>;
-
-auto decoded = lumalink::json::deserialize<mode, mode_spec>(R"("active")");
-
-JsonDocument encoded;
-lumalink::json::serialize<mode_spec>(mode::maintenance, encoded);
+using legacy_mode_spec = lumalink::json::spec::enum_string<mode>;
 ```
 
 ### Any
@@ -435,24 +451,41 @@ lumalink::json::expected_void is_small(const int value) {
     });
 }
 
-using even_spec = lumalink::json::spec::integer<
-    lumalink::json::opts::validator_func<is_even>>;
-
-using nonzero_spec = lumalink::json::spec::integer<
-    lumalink::json::opts::validator_func<is_nonzero>>;
+    struct mode_codec : lumalink::json::enum_codec<mode_codec, mode> {
+        static constexpr std::array<lumalink::json::traits::enum_mapping_entry<mode>, 3> values{{
 
 using small_spec = lumalink::json::spec::integer<
     lumalink::json::opts::validator_func<is_small>>;
 ```
 
 ## Object Binding Modes
-
+    using mode_spec = lumalink::json::spec::enum_string<mode_codec>;
 ### Aggregate Auto-Binding
 
 If the target is a non-union, non-polymorphic aggregate, `spec::object` binds by position using vendored PFR. The field count in the spec must match the model arity.
 
 ```cpp
 struct aggregate_endpoint {
+    This is the preferred authoring path because it keeps the mapping next to the enum-specific codec type instead of requiring a specialization in `lumalink::json::traits`.
+
+    The legacy trait path is still supported:
+
+    ```cpp
+    namespace lumalink::json::traits {
+
+    template <>
+    struct enum_strings<mode> {
+        static constexpr std::array<lumalink::json::traits::enum_mapping_entry<mode>, 3> values{{
+            {"standby", mode::standby},
+            {"active", mode::active},
+            {"maintenance", mode::maintenance},
+        }};
+    };
+
+    } // namespace lumalink::json::traits
+
+    using legacy_mode_spec = lumalink::json::spec::enum_string<mode>;
+    ```
     int id;
     std::string label;
     bool enabled;

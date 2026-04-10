@@ -17,6 +17,14 @@ enum class schema_mode : unsigned char {
     disabled,
 };
 
+struct schema_mode_codec : lumalink::json::enum_codec<schema_mode_codec, schema_mode> {
+    static constexpr std::array<lumalink::json::traits::enum_mapping_entry<schema_mode>, 3> values{{
+        {"auto", schema_mode::automatic},
+        {"manual", schema_mode::manual},
+        {"disabled", schema_mode::disabled},
+    }};
+};
+
 constexpr bool is_uppercase_schema_value(const std::string_view value) {
     if (value.empty()) {
         return false;
@@ -45,7 +53,7 @@ using tuple_schema_spec = lumalink::json::spec::tuple<
     lumalink::json::spec::boolean<>>;
 using one_of_schema_spec =
     lumalink::json::spec::one_of<lumalink::json::spec::integer<>, lumalink::json::spec::string<>>;
-using enum_schema_spec = lumalink::json::spec::enum_string<schema_mode>;
+using enum_schema_spec = lumalink::json::spec::enum_string<schema_mode_codec>;
 using bounded_integer_schema_spec = lumalink::json::spec::integer<lumalink::json::opts::min_max_value<10, 20>>;
 using patterned_string_schema_spec =
     lumalink::json::spec::string<lumalink::json::opts::pattern<is_uppercase_schema_value, "^[A-Z]+$">>;
@@ -79,19 +87,6 @@ std::string serialize_schema_or_fail(const JsonDocument& document) {
 }
 
 } // namespace
-
-namespace lumalink::json::traits {
-
-template <>
-struct enum_strings<schema_mode> {
-    static constexpr std::array<enum_mapping_entry<schema_mode>, 3> values{{
-        {"auto", schema_mode::automatic},
-        {"manual", schema_mode::manual},
-        {"disabled", schema_mode::disabled},
-    }};
-};
-
-} // namespace lumalink::json::traits
 
 void test_sch_01_scalar_nodes_emit_type_declarations() {
     JsonDocument null_schema;
