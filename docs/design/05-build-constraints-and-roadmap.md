@@ -70,6 +70,10 @@ Validated against libs/pfr in this repository:
    - unknown token decode failure
    - unmapped enum encode failure
    - duplicate mapping compile-time rejection
+7. schema enrichment tests
+   - additive metadata on scalar and field nodes
+   - codec enrich-vs-override behavior
+   - protected structural keyword rejection
 
 ## Open questions carried from source session
 
@@ -86,3 +90,7 @@ Resolved direction:
 
 1. use vendored pfr for aggregate index-based reflection
 2. keep explicit field-trait fallback for unsupported model types
+
+## Follow-On Design Track
+
+Schema generation shipped with a validation-oriented baseline keyword set. A follow-on schema enrichment track should add additive metadata contributors and a codec-level enrich hook so published schemas can carry documentation-oriented annotations without replacing the baseline generated shape.

@@ -75,11 +75,14 @@ Behavior:
    - delegation target is `Codec::template decode<InnerSpec, T>(...)` and `Codec::template encode<InnerSpec, T>(...)`
    - wrapped specs preserve the inner spec's error-context metadata
    - wrapped specs preserve the inner spec's schema shape unless the codec provides `Codec::template emit_schema<InnerSpec>(...)`
+   - wrapped specs may add metadata to the inner schema through `Codec::template enrich_schema<InnerSpec>(...)` when full replacement is not needed
 4. custom validators
    - attach via options
-5. custom discrimination strategy for one_of
+5. schema contributors
+   - attach additive schema metadata through repeatable `opts::schema<Contributor>` options
+6. custom discrimination strategy for one_of
    - reserved for future work; not part of the shipped v1 surface
-6. custom enum mapping traits
+7. custom enum mapping traits
    - specialize enum string table for project enum types
 
 ## Explicit codec wrapper contract
@@ -102,6 +105,10 @@ Delegation contract:
    - `template <typename InnerSpec>`
    - `static std::expected<void, json::error> emit_schema(JsonVariant dst);`
    - when absent, schema emission falls back to `InnerSpec`
+4. optional additive schema hook
+   - `template <typename InnerSpec>`
+   - `static std::expected<void, json::error> enrich_schema(JsonVariant dst);`
+   - when present without `emit_schema`, runs after `InnerSpec` has emitted its baseline schema
 
 This is especially useful for erased or runtime-dispatched types such as `std::any`, where the codec can own the discrimination rules and reject ambiguous payloads deterministically.
 

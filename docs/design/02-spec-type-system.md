@@ -45,10 +45,13 @@ Options are typed metadata attached to nodes:
 3. min_max_elements
 4. min_max_value
 5. pattern
+6. schema contributors
 
 For schema emission, `opts::pattern` may optionally carry a schema literal alongside the runtime predicate so the engine can project a JSON Schema `pattern` keyword.
 
-Compile-time option parsing enforces valid combinations and rejects duplicates in the same category.
+Schema contributors are a separate additive metadata channel. They do not change decode or encode behavior; they only enrich generated schema output.
+
+Compile-time option parsing enforces valid combinations. Most option categories reject duplicates; schema contributors are the intentional repeatable exception.
 
 ## C++ value mapping
 

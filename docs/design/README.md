@@ -37,6 +37,10 @@ This folder decomposes the session export into focused design documents for the 
    - Validation of design assumptions against libs/pfr
    - Required constraints and integration rules
 
+9. [08-schema-enrichment.md](08-schema-enrichment.md)
+   - Additive schema metadata model for specs and codecs
+   - Conflict rules, ordering, and rollout guidance
+
 ## Canonical policy from this design set
 
 All fallible APIs return std::expected.
