@@ -1,4 +1,29 @@
 .pio/
 .vscode/
-build/
-cmake/
+
+# Generated build trees
+/build/
+
+# CMake-generated artifacts that may appear outside build presets
+/.cmake/
+/CMakeFiles/
+/Testing/
+/CMakeCache.txt
+/cmake_install.cmake
+/CTestTestfile.cmake
+/install_manifest.txt
+
+# Visual Studio / MSBuild artifacts from CMake generators
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.dir/
+*.recipe
+*.tlog
+*.lastbuildstate
+*.obj
+*.pdb
+*.lib
+
+# Common generated build subdirectories
+/x64/
