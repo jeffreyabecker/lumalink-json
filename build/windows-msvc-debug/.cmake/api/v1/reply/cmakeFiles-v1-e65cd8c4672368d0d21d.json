@@ -1,0 +1,331 @@
+{
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/CMakeFiles/3.30.7/CMakeSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/Windows-Initialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/CMakeFiles/3.30.7/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/Windows.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/WindowsPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/MSVC-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/MSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/Windows-MSVC-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/Windows-MSVC.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/CMakeFiles/3.30.7/CMakeRCCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeRCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FetchContent.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/ExternalProject/shared_internal_commands.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FetchContent/CMakeLists.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/FetchContent/CMakeLists.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"path" : "cmake/LumaLinkJsonConfig.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/_deps/arduinojson-src/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/CMakeFiles/3.30.7/CMakeCCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/MSVC-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/MSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/Windows-MSVC-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/Windows-MSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/_deps/arduinojson-src/src/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/_deps/arduinojson-src/extras/ArduinoJsonConfig.cmake.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/_deps/unity-src/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/windows-msvc-debug/CMakeFiles/3.30.7/CMakeCCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/MSVC-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/MSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/Windows-MSVC-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/Platform/Windows-MSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in"
+		},
+		{
+			"path" : "test/CMakeLists.txt"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "C:/ode/lumalink-json/build/windows-msvc-debug",
+		"source" : "C:/ode/lumalink-json"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 1
+	}
+}

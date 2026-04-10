@@ -1,0 +1,15 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=git
+command=C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/bin/cmake.exe;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/tmp/arduinojson-populate-gitclone.cmake
+source_dir=C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-src
+work_dir=C:/ode/lumalink-json/build/windows-msvc-debug/_deps
+repository=https://github.com/bblanchon/ArduinoJson.git
+remote=origin
+init_submodules=TRUE
+recurse_submodules=--recursive
+submodules=
+CMP0097=NEW
+      

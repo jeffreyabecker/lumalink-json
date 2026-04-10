@@ -1,0 +1,150 @@
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\526081C177FA5B3A1CC89FB42762FB7A\ARDUINOJSON-POPULATE-MKDIR.RULE
+setlocal
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -Dcfgdir=/Debug -P C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/tmp/arduinojson-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/src/arduinojson-populate-stamp/Debug/arduinojson-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\526081C177FA5B3A1CC89FB42762FB7A\ARDUINOJSON-POPULATE-DOWNLOAD.RULE
+setlocal
+cd C:\ode\lumalink-json\build\windows-msvc-debug\_deps
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/tmp/arduinojson-populate-gitclone.cmake
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/src/arduinojson-populate-stamp/Debug/arduinojson-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\526081C177FA5B3A1CC89FB42762FB7A\ARDUINOJSON-POPULATE-UPDATE.RULE
+setlocal
+cd C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -Dcan_fetch=YES -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/tmp/arduinojson-populate-gitupdate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\526081C177FA5B3A1CC89FB42762FB7A\ARDUINOJSON-POPULATE-PATCH.RULE
+setlocal
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/src/arduinojson-populate-stamp/Debug/arduinojson-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\526081C177FA5B3A1CC89FB42762FB7A\ARDUINOJSON-POPULATE-CONFIGURE.RULE
+setlocal
+cd C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/src/arduinojson-populate-stamp/Debug/arduinojson-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\526081C177FA5B3A1CC89FB42762FB7A\ARDUINOJSON-POPULATE-BUILD.RULE
+setlocal
+cd C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/src/arduinojson-populate-stamp/Debug/arduinojson-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\526081C177FA5B3A1CC89FB42762FB7A\ARDUINOJSON-POPULATE-INSTALL.RULE
+setlocal
+cd C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/src/arduinojson-populate-stamp/Debug/arduinojson-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\526081C177FA5B3A1CC89FB42762FB7A\ARDUINOJSON-POPULATE-TEST.RULE
+setlocal
+cd C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/src/arduinojson-populate-stamp/Debug/arduinojson-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\EDCF185B034C4D794649576BDE3B03A7\ARDUINOJSON-POPULATE-COMPLETE.RULE
+setlocal
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E make_directory C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/CMakeFiles/Debug/arduinojson-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -E touch C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/arduinojson-populate-prefix/src/arduinojson-populate-stamp/Debug/arduinojson-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKEFILES\28FF47615EC2708F9F173A2AC6C98192\ARDUINOJSON-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\_DEPS\ARDUINOJSON-SUBBUILD\CMAKELISTS.TXT
+setlocal
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -SC:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild -BC:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild --check-stamp-file C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

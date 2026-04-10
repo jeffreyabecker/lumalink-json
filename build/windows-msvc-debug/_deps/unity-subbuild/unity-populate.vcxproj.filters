@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\ff45ffb0807ed788419fe07d6267eeb4\unity-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\ff45ffb0807ed788419fe07d6267eeb4\unity-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\ff45ffb0807ed788419fe07d6267eeb4\unity-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\ff45ffb0807ed788419fe07d6267eeb4\unity-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\ff45ffb0807ed788419fe07d6267eeb4\unity-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\ff45ffb0807ed788419fe07d6267eeb4\unity-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\ff45ffb0807ed788419fe07d6267eeb4\unity-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\ff45ffb0807ed788419fe07d6267eeb4\unity-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\066314f94e0aa395caeee89a632a6fb1\unity-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\99de97045ffdb78f946de9965453aa4c\unity-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\unity-subbuild\CMakeFiles\unity-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{28E53407-D2D3-3320-9CB9-E69F7EB4B0F0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

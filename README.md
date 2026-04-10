@@ -34,6 +34,67 @@ Run compile-fail harness checks:
 powershell -ExecutionPolicy Bypass -File tools/run_compile_fail_checks.ps1
 ```
 
+## CMake Setup
+
+The repository also supports a CMake-based build for native targets (MSVC on Windows, GCC on Linux). Embedded targets are not covered.
+
+### Prerequisites
+
+- CMake 3.25 or later
+- Ninja (recommended; install via `winget install Ninja-build.Ninja` or your package manager)
+- **Windows:** run from a Visual Studio Developer PowerShell or after calling `vcvarsall.bat` so that `cl.exe` is on `PATH`
+- **Linux:** GCC with C++23 support (`g++ --version` should report 13 or later)
+
+ArduinoJson and Unity are fetched automatically via `FetchContent` on first configure; no manual dependency installation is needed.
+
+### Configure, build, and test
+
+```powershell
+# Windows MSVC debug
+cmake --preset windows-msvc-debug
+cmake --build --preset windows-msvc-debug
+ctest --preset windows-msvc-debug
+```
+
+```bash
+# Linux GCC debug
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug
+ctest --preset linux-gcc-debug
+```
+
+Available presets: `windows-msvc-debug`, `windows-msvc-release`, `linux-gcc-debug`, `linux-gcc-release`.
+
+Build output lands in `build/<preset-name>/`.
+
+### Compile-fail harness
+
+The compile-fail cases under `test/compile_fail/` are registered as individual `ctest` tests. They run automatically as part of the full `ctest` invocation above. To run only that subset:
+
+```powershell
+ctest --preset windows-msvc-debug -R "compile_fail/"
+```
+
+### Install and downstream use
+
+```powershell
+cmake --install build/windows-msvc-release --prefix C:/my/prefix
+```
+
+A downstream project can then consume the library with:
+
+```cmake
+find_package(LumaLinkJson REQUIRED)
+target_link_libraries(my_app PRIVATE LumaLinkJson::LumaLinkJson)
+```
+
+Or without installing, via `add_subdirectory`:
+
+```cmake
+add_subdirectory(path/to/lumalink-json)
+target_link_libraries(my_app PRIVATE LumaLinkJson::LumaLinkJson)
+```
+
 ## Test Naming Conventions
 
 - Native runtime files use `test_<phase-or-area>_<topic>.cpp`.

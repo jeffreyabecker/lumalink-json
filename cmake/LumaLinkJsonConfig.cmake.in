@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# ArduinoJson is a transitive INTERFACE dependency; consumers must have it
+# findable via CMAKE_PREFIX_PATH or an ArduinoJson installation.
+find_dependency(ArduinoJson)
+
+include("${CMAKE_CURRENT_LIST_DIR}/LumaLinkJsonTargets.cmake")
+
+check_required_components(LumaLinkJson)

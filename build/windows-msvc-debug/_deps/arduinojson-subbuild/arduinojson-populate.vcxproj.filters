@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\526081c177fa5b3a1cc89fb42762fb7a\arduinojson-populate-mkdir.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\526081c177fa5b3a1cc89fb42762fb7a\arduinojson-populate-download.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\526081c177fa5b3a1cc89fb42762fb7a\arduinojson-populate-update.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\526081c177fa5b3a1cc89fb42762fb7a\arduinojson-populate-patch.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\526081c177fa5b3a1cc89fb42762fb7a\arduinojson-populate-configure.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\526081c177fa5b3a1cc89fb42762fb7a\arduinojson-populate-build.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\526081c177fa5b3a1cc89fb42762fb7a\arduinojson-populate-install.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\526081c177fa5b3a1cc89fb42762fb7a\arduinojson-populate-test.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\edcf185b034c4d794649576bde3b03a7\arduinojson-populate-complete.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\28ff47615ec2708f9f173a2ac6c98192\arduinojson-populate.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\ode\lumalink-json\build\windows-msvc-debug\_deps\arduinojson-subbuild\CMakeFiles\arduinojson-populate" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{7E0FEE3A-06E4-3E99-85DC-E0A9821430EF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

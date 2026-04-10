@@ -1,0 +1,10 @@
+^C:\ODE\LUMALINK-JSON\BUILD\WINDOWS-MSVC-DEBUG\CMAKEFILES\352F9D6B7D689BB605094FDE87954EEC\GENERATE.STAMP.RULE
+setlocal
+C:\Users\jeffr\AppData\Local\xpack-dev-tools\cmake\xpack-cmake-3.30.7-1\bin\cmake.exe -SC:/ode/lumalink-json -BC:/ode/lumalink-json/build/windows-msvc-debug --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/ode/lumalink-json/build/windows-msvc-debug/LumaLinkJson.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

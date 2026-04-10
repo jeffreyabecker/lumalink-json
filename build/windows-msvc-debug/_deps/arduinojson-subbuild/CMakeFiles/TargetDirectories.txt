@@ -1,0 +1,3 @@
+C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/CMakeFiles/arduinojson-populate.dir
+C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/CMakeFiles/ALL_BUILD.dir
+C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-subbuild/CMakeFiles/ZERO_CHECK.dir

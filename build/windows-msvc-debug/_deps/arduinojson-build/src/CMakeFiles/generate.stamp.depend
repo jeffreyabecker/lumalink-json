@@ -1,0 +1,7 @@
+# CMake generation dependency list for this directory.
+C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/BasicConfigVersion-SameMajorVersion.cmake.in
+C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/CMakePackageConfigHelpers.cmake
+C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/GNUInstallDirs.cmake
+C:/Users/jeffr/AppData/Local/xpack-dev-tools/cmake/xpack-cmake-3.30.7-1/share/cmake-3.30/Modules/WriteBasicConfigVersionFile.cmake
+C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-src/extras/ArduinoJsonConfig.cmake.in
+C:/ode/lumalink-json/build/windows-msvc-debug/_deps/arduinojson-src/src/CMakeLists.txt

@@ -88,7 +88,7 @@ template <typename Spec>
     return annotate<Spec>(error{code, {}, message, backend_status}, policy);
 }
 
-[[nodiscard]] constexpr error_code map_deserialization_error(const DeserializationError parse_error) noexcept {
+[[nodiscard]] inline error_code map_deserialization_error(const DeserializationError parse_error) noexcept {
     using Code = DeserializationError::Code;
 
     switch (parse_error.code()) {
