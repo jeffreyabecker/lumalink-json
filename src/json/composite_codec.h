@@ -779,7 +779,7 @@ struct decoder<spec::object<Fields...>, T> {
                 "expected object"));
         }
 
-        T value{};
+        T value;
         auto field_result = detail::decode_object_fields<0U, T, Fields...>(source.as<JsonObjectConst>(), value, state);
         if (!field_result.has_value()) {
             return std::unexpected(detail::annotate<spec::object<Fields...>>(field_result.error(), state.context));

@@ -3,35 +3,70 @@
 Design docs from the session decomposition are in [docs/design/README.md](docs/design/README.md).
 Usage examples for the shipped API surface are in [docs/usage-guide.md](docs/usage-guide.md).
 
-## PlatformIO Setup
+## PlatformIO configuration removed
 
-This repository is configured as a PlatformIO library project with a native test environment using Unity.
+The previous PlatformIO configuration and helper script were removed during the CMake migration.
+Use the CMake workflow described in the next section to build, test, and install the library.
 
-The library is header-only. Public headers use an Arduino-style single-directory layout under src.
+## CMake Setup
 
-The PlatformIO configuration is split across files under the pio directory:
+The repository also supports a CMake-based build for native targets (MSVC on Windows, GCC on Linux). Embedded targets are not covered.
 
-- pio/common.ini
-- pio/env_native_tests.ini
+### Prerequisites
 
-### Native test environment
+- CMake 3.25 or later
+- Ninja (recommended; install via `winget install Ninja-build.Ninja` or your package manager)
+- **Windows:** run from a Visual Studio Developer PowerShell or after calling `vcvarsall.bat` so that `cl.exe` is on `PATH`
+- **Linux:** GCC with C++23 support (`g++ --version` should report 13 or later)
 
-- Environment: native_tests
-- Test framework: Unity
-- JSON dependency: bblanchon/ArduinoJson @ ^7.0.0
+ArduinoJson and Unity are fetched automatically via `FetchContent` on first configure; no manual dependency installation is needed.
 
-### Commands
-
-Run tests:
+### Configure, build, and test
 
 ```powershell
-pio test -e native_tests
+# Windows MSVC debug
+cmake --preset windows-msvc-debug
+cmake --build --preset windows-msvc-debug
+ctest --preset windows-msvc-debug
 ```
 
-Run compile-fail harness checks:
+```bash
+# Linux GCC debug
+cmake --preset linux-gcc-debug
+cmake --build --preset linux-gcc-debug
+ctest --preset linux-gcc-debug
+```
+
+Available presets: `windows-msvc-debug`, `windows-msvc-release`, `linux-gcc-debug`, `linux-gcc-release`.
+
+Build output lands in `build/<preset-name>/`.
+
+### Compile-fail harness
+
+The compile-fail cases under `test/compile_fail/` are registered as individual `ctest` tests. They run automatically as part of the full `ctest` invocation above. To run only that subset:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools/run_compile_fail_checks.ps1
+ctest --preset windows-msvc-debug -R "compile_fail/"
+```
+
+### Install and downstream use
+
+```powershell
+cmake --install build/windows-msvc-release --prefix C:/my/prefix
+```
+
+A downstream project can then consume the library with:
+
+```cmake
+find_package(LumaLinkJson REQUIRED)
+target_link_libraries(my_app PRIVATE LumaLinkJson::LumaLinkJson)
+```
+
+Or without installing, via `add_subdirectory`:
+
+```cmake
+add_subdirectory(path/to/lumalink-json)
+target_link_libraries(my_app PRIVATE LumaLinkJson::LumaLinkJson)
 ```
 
 ## Test Naming Conventions

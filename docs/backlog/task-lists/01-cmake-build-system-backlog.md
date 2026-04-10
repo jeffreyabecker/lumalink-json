@@ -13,7 +13,7 @@ Status legend:
 
 ## Implementation Status
 
-Current status: not started.
+Current status: phases 1–5 implemented.
 
 The project currently builds and tests exclusively through PlatformIO (`platformio.ini`, `pio/common.ini`, `pio/env_native_tests.ini`). No CMake files exist yet. The library headers reside under `src/` with `src/libs/pfr/` as a vendored dependency. Tests live under `test/test_native/` and use the Unity test framework.
 
@@ -57,42 +57,42 @@ The project currently builds and tests exclusively through PlatformIO (`platform
 
 | ID | Status | Task | Depends On | Definition of Done |
 |---|---|---|---|---|
-| CMAKE-01 | todo | Author `CMakeLists.txt` at the repo root defining the project, minimum CMake version, and C++23 standard requirement | none | `cmake --preset` or a manual configure step completes without error on both Windows (MSVC) and Linux (GCC) |
-| CMAKE-02 | todo | Define the `lumalink_json` `INTERFACE` library target with `src/` and `src/libs/pfr/` on its include path | CMAKE-01 | A minimal consumer `add_subdirectory` or `find_package` can `#include "LumaLinkJson.h"` without additional include directories |
-| CMAKE-03 | todo | Apply compiler flags equivalent to the PlatformIO `common.ini` settings to the interface target | CMAKE-02 | MSVC receives `/W4 /WX- /EHs-` (no-exceptions) and `/std:c++latest`; GCC receives `-std=gnu++23 -Wall -Wextra -Wno-unused-parameter -fno-exceptions` |
-| CMAKE-04 | todo | Integrate ArduinoJson via `FetchContent` and link it to the interface target | CMAKE-02 | The interface target transitively pulls ArduinoJson for any consumer without manual `include_directories` |
+| CMAKE-01 | done | Author `CMakeLists.txt` at the repo root defining the project, minimum CMake version, and C++23 standard requirement | none | `cmake --preset` or a manual configure step completes without error on both Windows (MSVC) and Linux (GCC) |
+| CMAKE-02 | done | Define the `lumalink_json` `INTERFACE` library target with `src/` and `src/libs/pfr/` on its include path | CMAKE-01 | A minimal consumer `add_subdirectory` or `find_package` can `#include "LumaLinkJson.h"` without additional include directories |
+| CMAKE-03 | done | Apply compiler flags equivalent to the PlatformIO `common.ini` settings to the interface target | CMAKE-02 | MSVC receives `/W4 /WX- /EHs-` (no-exceptions) and `/std:c++latest`; GCC receives `-std=gnu++23 -Wall -Wextra -Wno-unused-parameter -fno-exceptions` |
+| CMAKE-04 | done | Integrate ArduinoJson via `FetchContent` and link it to the interface target | CMAKE-02 | The interface target transitively pulls ArduinoJson for any consumer without manual `include_directories` |
 
 ## Phase 2 - Native Test Executable
 
 | ID | Status | Task | Depends On | Definition of Done |
 |---|---|---|---|---|
-| CMAKE-05 | todo | Integrate the Unity test framework via `FetchContent` guarded by a `LUMALINK_JSON_BUILD_TESTS` option | CMAKE-01 | Unity is fetched only when tests are enabled and is not propagated to consumers |
-| CMAKE-06 | todo | Define a `lumalink_json_tests` executable target that compiles all files under `test/test_native/` | CMAKE-02, CMAKE-05 | The test executable builds without error on MSVC and GCC |
-| CMAKE-07 | todo | Register the test executable with `ctest` so `ctest --output-on-failure` runs the full suite | CMAKE-06 | `ctest` exits zero when all Unity tests pass |
-| CMAKE-08 | todo | Add `UNIT_TEST` and `NATIVE_TESTS` compile definitions to the test target to match PlatformIO behavior | CMAKE-06 | Preprocessor guards that gate test-only code compile correctly under CMake |
+| CMAKE-05 | done | Integrate the Unity test framework via `FetchContent` guarded by a `LUMALINK_JSON_BUILD_TESTS` option | CMAKE-01 | Unity is fetched only when tests are enabled and is not propagated to consumers |
+| CMAKE-06 | done | Define a `lumalink_json_tests` executable target that compiles all files under `test/test_native/` | CMAKE-02, CMAKE-05 | The test executable builds without error on MSVC and GCC |
+| CMAKE-07 | done | Register the test executable with `ctest` so `ctest --output-on-failure` runs the full suite | CMAKE-06 | `ctest` exits zero when all Unity tests pass |
+| CMAKE-08 | done | Add `UNIT_TEST` and `NATIVE_TESTS` compile definitions to the test target to match PlatformIO behavior | CMAKE-06 | Preprocessor guards that gate test-only code compile correctly under CMake |
 
 ## Phase 3 - Compile-Fail Test Integration
 
 | ID | Status | Task | Depends On | Definition of Done |
 |---|---|---|---|---|
-| CMAKE-09 | todo | Audit `test/compile_fail/` and `tools/run_compile_fail_checks.ps1` to understand the current detection mechanism | none | A written note or inline comment describes what the script does and what CMake hook is needed |
-| CMAKE-10 | todo | Add a CMake custom target or `ctest` fixture that invokes each compile-fail case and asserts non-zero exit | CMAKE-07, CMAKE-09 | `ctest -R compile_fail` runs all cases and fails the suite if any case unexpectedly compiles |
+| CMAKE-09 | done | Audit `test/compile_fail/` and `tools/run_compile_fail_checks.ps1` to understand the current detection mechanism | none | A written note or inline comment describes what the script does and what CMake hook is needed |
+| CMAKE-10 | done | Add a CMake custom target or `ctest` fixture that invokes each compile-fail case and asserts non-zero exit | CMAKE-07, CMAKE-09 | `ctest -R compile_fail` runs all cases and fails the suite if any case unexpectedly compiles |
 
 ## Phase 4 - CMake Package Installation
 
 | ID | Status | Task | Depends On | Definition of Done |
 |---|---|---|---|---|
-| CMAKE-11 | todo | Author installation rules for the interface target, headers, and generated CMake config files | CMAKE-02, CMAKE-04 | `cmake --install` produces a prefix tree that a consumer project can point `CMAKE_PREFIX_PATH` at |
-| CMAKE-12 | todo | Author `cmake/LumaLinkJsonConfig.cmake.in` and wire it through `configure_package_config_file` | CMAKE-11 | A consumer project with no source access to this repo can call `find_package(LumaLinkJson REQUIRED)` and get the interface target |
-| CMAKE-13 | todo | Author a `LumaLinkJsonVersion.cmake` via `write_basic_package_version_file` | CMAKE-12 | `find_package(LumaLinkJson 0.1 REQUIRED)` resolves correctly against the installed package |
+| CMAKE-11 | done | Author installation rules for the interface target, headers, and generated CMake config files | CMAKE-02, CMAKE-04 | `cmake --install` produces a prefix tree that a consumer project can point `CMAKE_PREFIX_PATH` at |
+| CMAKE-12 | done | Author `cmake/LumaLinkJsonConfig.cmake.in` and wire it through `configure_package_config_file` | CMAKE-11 | A consumer project with no source access to this repo can call `find_package(LumaLinkJson REQUIRED)` and get the interface target |
+| CMAKE-13 | done | Author a `LumaLinkJsonVersion.cmake` via `write_basic_package_version_file` | CMAKE-12 | `find_package(LumaLinkJson 0.1 REQUIRED)` resolves correctly against the installed package |
 
 ## Phase 5 - CMake Presets And Developer Workflow
 
 | ID | Status | Task | Depends On | Definition of Done |
 |---|---|---|---|---|
-| CMAKE-14 | todo | Author a `CMakePresets.json` with configure presets for `windows-msvc-debug`, `windows-msvc-release`, `linux-gcc-debug`, and `linux-gcc-release` | CMAKE-03 | Developers can run `cmake --preset windows-msvc-debug` without specifying generator or flags manually |
-| CMAKE-15 | todo | Add a build preset and a test preset that chain from each configure preset | CMAKE-14 | `cmake --build --preset windows-msvc-debug` and `ctest --preset windows-msvc-debug` both work end-to-end |
-| CMAKE-16 | todo | Update `README.md` with CMake build, test, and install instructions alongside the existing PlatformIO instructions | CMAKE-07, CMAKE-11, CMAKE-15 | A new contributor can build and run tests using only the README as a guide |
+| CMAKE-14 | done | Author a `CMakePresets.json` with configure presets for `windows-msvc-debug`, `windows-msvc-release`, `linux-gcc-debug`, and `linux-gcc-release` | CMAKE-03 | Developers can run `cmake --preset windows-msvc-debug` without specifying generator or flags manually |
+| CMAKE-15 | done | Add a build preset and a test preset that chain from each configure preset | CMAKE-14 | `cmake --build --preset windows-msvc-debug` and `ctest --preset windows-msvc-debug` both work end-to-end |
+| CMAKE-16 | done | Update `README.md` with CMake build, test, and install instructions alongside the existing PlatformIO instructions | CMAKE-07, CMAKE-11, CMAKE-15 | A new contributor can build and run tests using only the README as a guide |
 
 ## Phase 6 - Verification And PlatformIO Parity Check
 
