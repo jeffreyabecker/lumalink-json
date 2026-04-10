@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string>
 #include <type_traits>
 
 #include <json/core.h>
@@ -42,9 +43,75 @@ struct validator_func {
     static constexpr auto value = Validator;
 };
 
+template <typename Contributor>
+struct schema {
+    using contributor = Contributor;
+};
+
 } // namespace lumalink::json::opts
 
+namespace lumalink::json::schema_meta {
+
+template <fixed_string Title>
+struct title {
+    static expected_void apply(JsonVariant schema) {
+        JsonObject schema_object = schema.as<JsonObject>();
+        schema_object["title"] = std::string(Title.view());
+        return {};
+    }
+};
+
+template <fixed_string Description>
+struct description {
+    static expected_void apply(JsonVariant schema) {
+        JsonObject schema_object = schema.as<JsonObject>();
+        schema_object["description"] = std::string(Description.view());
+        return {};
+    }
+};
+
+template <fixed_string Format>
+struct format {
+    static expected_void apply(JsonVariant schema) {
+        JsonObject schema_object = schema.as<JsonObject>();
+        schema_object["format"] = std::string(Format.view());
+        return {};
+    }
+};
+
+template <bool Enabled>
+struct deprecated {
+    static expected_void apply(JsonVariant schema) {
+        JsonObject schema_object = schema.as<JsonObject>();
+        schema_object["deprecated"] = Enabled;
+        return {};
+    }
+};
+
+template <bool Enabled>
+struct read_only {
+    static expected_void apply(JsonVariant schema) {
+        JsonObject schema_object = schema.as<JsonObject>();
+        schema_object["readOnly"] = Enabled;
+        return {};
+    }
+};
+
+template <bool Enabled>
+struct write_only {
+    static expected_void apply(JsonVariant schema) {
+        JsonObject schema_object = schema.as<JsonObject>();
+        schema_object["writeOnly"] = Enabled;
+        return {};
+    }
+};
+
+} // namespace lumalink::json::schema_meta
+
 namespace lumalink::json::detail {
+
+template <typename... Types>
+struct type_list {};
 
 template <typename...>
 inline constexpr bool always_false_v = false;
@@ -79,6 +146,14 @@ struct is_validator_option : std::false_type {};
 template <auto Validator>
 struct is_validator_option<opts::validator_func<Validator>> : std::true_type {};
 
+template <typename Option>
+struct is_schema_option : std::false_type {};
+
+template <typename Contributor>
+struct is_schema_option<opts::schema<Contributor>> : std::true_type {
+    using contributor = Contributor;
+};
+
 template <typename... Options>
 inline constexpr size_t name_option_count_v = (0U + ... + static_cast<size_t>(is_name_option<Options>::value));
 
@@ -97,6 +172,38 @@ inline constexpr size_t pattern_option_count_v =
 template <typename... Options>
 inline constexpr size_t validator_option_count_v =
     (0U + ... + static_cast<size_t>(is_validator_option<Options>::value));
+
+template <typename List, typename Type>
+struct type_list_push_front;
+
+template <typename... Types, typename Type>
+struct type_list_push_front<type_list<Types...>, Type> {
+    using type = type_list<Type, Types...>;
+};
+
+template <bool IsSchemaOption, typename Option, typename Tail>
+struct collect_schema_contributors_step {
+    using type = Tail;
+};
+
+template <typename Option, typename Tail>
+struct collect_schema_contributors_step<true, Option, Tail> {
+    using type = typename type_list_push_front<Tail, typename is_schema_option<Option>::contributor>::type;
+};
+
+template <typename... Options>
+struct collect_schema_contributors {
+    using type = type_list<>;
+};
+
+template <typename First, typename... Rest>
+struct collect_schema_contributors<First, Rest...> {
+    using tail = typename collect_schema_contributors<Rest...>::type;
+    using type = typename collect_schema_contributors_step<is_schema_option<First>::value, First, tail>::type;
+};
+
+template <typename... Options>
+using schema_contributor_list_t = typename collect_schema_contributors<Options...>::type;
 
 template <typename... Options>
 struct scalar_option_contract {

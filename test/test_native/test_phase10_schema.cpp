@@ -74,10 +74,90 @@ struct custom_schema_codec {
     }
 };
 
+struct enriched_schema_codec {
+    template <typename InnerSpec>
+    static lumalink::json::expected_void enrich_schema(JsonVariant destination) {
+        JsonObject schema = destination.as<JsonObject>();
+        schema["description"] = "enriched by codec";
+        return {};
+    }
+};
+
+struct override_wins_schema_codec {
+    template <typename InnerSpec>
+    static lumalink::json::expected_void emit_schema(JsonVariant destination) {
+        JsonObject schema = destination.to<JsonObject>();
+        schema["type"] = "object";
+        return {};
+    }
+
+    template <typename InnerSpec>
+    static lumalink::json::expected_void enrich_schema(JsonVariant destination) {
+        JsonObject schema = destination.as<JsonObject>();
+        schema["description"] = "should not be present";
+        return {};
+    }
+};
+
+struct set_title_alpha {
+    static lumalink::json::expected_void apply(JsonVariant destination) {
+        destination.as<JsonObject>()["title"] = "alpha";
+        return {};
+    }
+};
+
+struct set_title_override {
+    static lumalink::json::expected_void apply(JsonVariant destination) {
+        destination.as<JsonObject>()["title"] = "override";
+        return {};
+    }
+};
+
+struct overwrite_type_keyword {
+    static lumalink::json::expected_void apply(JsonVariant destination) {
+        destination.as<JsonObject>()["type"] = "number";
+        return {};
+    }
+};
+
+struct overwrite_codec_type_schema {
+    template <typename InnerSpec>
+    static lumalink::json::expected_void enrich_schema(JsonVariant destination) {
+        destination.as<JsonObject>()["type"] = "number";
+        return {};
+    }
+};
+
 using wrapped_string_schema_spec =
     lumalink::json::spec::with_codec<lumalink::json::spec::string<>, passthrough_schema_codec>;
 using custom_wrapped_schema_spec =
     lumalink::json::spec::with_codec<lumalink::json::spec::any<>, custom_schema_codec>;
+using enriched_wrapped_schema_spec =
+    lumalink::json::spec::with_codec<lumalink::json::spec::string<>, enriched_schema_codec>;
+using override_wins_wrapped_schema_spec =
+    lumalink::json::spec::with_codec<lumalink::json::spec::string<>, override_wins_schema_codec>;
+using protected_keyword_codec_schema_spec =
+    lumalink::json::spec::with_codec<lumalink::json::spec::string<>, overwrite_codec_type_schema>;
+
+using annotated_integer_schema_spec = lumalink::json::spec::integer<
+    lumalink::json::opts::schema<lumalink::json::schema_meta::title<"Device Id">>,
+    lumalink::json::opts::schema<lumalink::json::schema_meta::description<"Stable device identifier">>,
+    lumalink::json::opts::schema<lumalink::json::schema_meta::format<"uint32">>>;
+
+using field_annotated_object_schema_spec = lumalink::json::spec::object<
+    lumalink::json::spec::field<
+        "token",
+        lumalink::json::spec::string<>,
+        lumalink::json::opts::schema<
+            lumalink::json::schema_meta::description<"Token shown in setup UI">>,
+        lumalink::json::opts::schema<lumalink::json::schema_meta::read_only<true>>>>;
+
+using ordered_contributor_schema_spec = lumalink::json::spec::integer<
+    lumalink::json::opts::schema<set_title_alpha>,
+    lumalink::json::opts::schema<set_title_override>>;
+
+using protected_keyword_schema_spec = lumalink::json::spec::integer<
+    lumalink::json::opts::schema<overwrite_type_keyword>>;
 
 std::string serialize_schema_or_fail(const JsonDocument& document) {
     std::string serialized;
@@ -230,6 +310,74 @@ void test_sch_09_codec_wrapped_specs_may_override_schema_generation() {
         serialize_schema_or_fail(schema).c_str());
 }
 
+void test_sch_10_schema_contributors_add_annotation_keywords() {
+    JsonDocument schema;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::generate_schema<annotated_integer_schema_spec>(schema));
+
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"type\":\"integer\",\"title\":\"Device Id\",\"description\":\"Stable device identifier\",\"format\":\"uint32\"}",
+        serialize_schema_or_fail(schema).c_str());
+}
+
+void test_sch_11_field_schema_contributors_annotate_property_schemas() {
+    JsonDocument schema;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::generate_schema<field_annotated_object_schema_spec>(schema));
+
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"type\":\"object\",\"properties\":{\"token\":{\"type\":\"string\",\"description\":\"Token shown in setup UI\",\"readOnly\":true}},\"required\":[\"token\"]}",
+        serialize_schema_or_fail(schema).c_str());
+}
+
+void test_sch_12_schema_contributors_apply_in_declaration_order() {
+    JsonDocument schema;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::generate_schema<ordered_contributor_schema_spec>(schema));
+
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"type\":\"integer\",\"title\":\"override\"}",
+        serialize_schema_or_fail(schema).c_str());
+}
+
+void test_sch_13_codec_enrich_schema_augments_inner_schema() {
+    JsonDocument schema;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::generate_schema<enriched_wrapped_schema_spec>(schema));
+
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"type\":\"string\",\"description\":\"enriched by codec\"}",
+        serialize_schema_or_fail(schema).c_str());
+}
+
+void test_sch_14_codec_emit_schema_takes_precedence_over_enrichment() {
+    JsonDocument schema;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::generate_schema<override_wins_wrapped_schema_spec>(schema));
+
+    TEST_ASSERT_EQUAL_STRING("{\"type\":\"object\"}", serialize_schema_or_fail(schema).c_str());
+}
+
+void test_sch_15_schema_contributors_reject_protected_keyword_overrides() {
+    JsonDocument schema;
+    auto result = lumalink::json::generate_schema<protected_keyword_schema_spec>(schema);
+
+    TEST_ASSERT_FALSE(result.has_value());
+    TEST_ASSERT_EQUAL(
+        lumalink::json::error_code::validation_failed,
+        result.error().code);
+}
+
+void test_sch_16_codec_enrichment_rejects_protected_keyword_overrides() {
+    JsonDocument schema;
+    auto result = lumalink::json::generate_schema<protected_keyword_codec_schema_spec>(schema);
+
+    TEST_ASSERT_FALSE(result.has_value());
+    TEST_ASSERT_EQUAL(
+        lumalink::json::error_code::validation_failed,
+        result.error().code);
+}
+
 void run_phase10_schema_tests() {
     RUN_TEST(test_sch_01_scalar_nodes_emit_type_declarations);
     RUN_TEST(test_sch_02_field_and_object_emit_properties_required_and_stable_order);
@@ -240,4 +388,11 @@ void run_phase10_schema_tests() {
     RUN_TEST(test_sch_07_builtin_error_spec_emits_common_error_schema);
     RUN_TEST(test_sch_08_codec_wrapped_specs_reuse_inner_schema_shape);
     RUN_TEST(test_sch_09_codec_wrapped_specs_may_override_schema_generation);
+    RUN_TEST(test_sch_10_schema_contributors_add_annotation_keywords);
+    RUN_TEST(test_sch_11_field_schema_contributors_annotate_property_schemas);
+    RUN_TEST(test_sch_12_schema_contributors_apply_in_declaration_order);
+    RUN_TEST(test_sch_13_codec_enrich_schema_augments_inner_schema);
+    RUN_TEST(test_sch_14_codec_emit_schema_takes_precedence_over_enrichment);
+    RUN_TEST(test_sch_15_schema_contributors_reject_protected_keyword_overrides);
+    RUN_TEST(test_sch_16_codec_enrichment_rejects_protected_keyword_overrides);
 }
