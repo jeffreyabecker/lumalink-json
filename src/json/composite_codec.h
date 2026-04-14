@@ -85,14 +85,13 @@ inline constexpr size_t pfr_arity_limit = 200;
 template <typename Spec>
 [[nodiscard]] constexpr expected_void check_min_max_elements(
     const size_t count,
-    const context_policy policy,
-    const std::string_view failure_message = "element count out of range") noexcept {
+    const context_policy policy) noexcept {
     using range_option = typename spec_descriptor<Spec>::min_max_elements_option;
+    constexpr auto failure_message = option_message_or<range_option>("element count out of range");
 
     if constexpr (std::is_void_v<range_option>) {
         (void)count;
         (void)policy;
-        (void)failure_message;
         return {};
     } else {
         if (count < range_option::min || count > range_option::max) {
@@ -862,6 +861,12 @@ struct decoder<spec::array_of<ElementSpec, Options...>, T, std::enable_if_t<deta
             return std::unexpected(bounds_result.error());
         }
 
+        const auto not_empty_result =
+            detail::check_not_empty<spec::array_of<ElementSpec, Options...>>(array_source, state.context);
+        if (!not_empty_result.has_value()) {
+            return std::unexpected(not_empty_result.error());
+        }
+
         T values{};
         using element_type = typename detail::remove_cvref_t<T>::value_type;
 
@@ -899,6 +904,11 @@ struct encoder<spec::array_of<ElementSpec, Options...>, T, std::enable_if_t<deta
             state.context);
         if (!bounds_result.has_value()) {
             return std::unexpected(bounds_result.error());
+        }
+
+        const auto not_empty_result = detail::check_not_empty<spec::array_of<ElementSpec, Options...>>(value, state.context);
+        if (!not_empty_result.has_value()) {
+            return std::unexpected(not_empty_result.error());
         }
 
         const auto validation_result = detail::run_validator<spec::array_of<ElementSpec, Options...>>(value, state.context);

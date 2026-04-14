@@ -2,6 +2,7 @@
 
 #include <ArduinoJson.h>
 
+#include <algorithm>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -449,6 +450,19 @@ void emit_pattern_keyword(JsonObject schema) {
 }
 
 template <typename Spec>
+void emit_not_empty_keyword(JsonObject schema) {
+    using not_empty_option = typename spec_descriptor<Spec>::not_empty_option;
+
+    if constexpr (!std::is_void_v<not_empty_option>) {
+        if constexpr (spec_descriptor<Spec>::kind == node_kind::string) {
+            schema["minLength"] = 1;
+        } else if constexpr (spec_descriptor<Spec>::kind == node_kind::array_of) {
+            schema["minItems"] = std::max<size_t>(1U, schema["minItems"] | 0U);
+        }
+    }
+}
+
+template <typename Spec>
 struct base_schema_emitter {
     static expected_void emit(JsonVariant) {
         static_assert(always_false_v<Spec>, "schema generation is not implemented for this spec node");
@@ -578,6 +592,7 @@ struct base_schema_emitter<spec::string<Options...>> {
     static expected_void emit(JsonVariant destination) {
         JsonObject schema = destination.to<JsonObject>();
         schema["type"] = "string";
+        emit_not_empty_keyword<spec::string<Options...>>(schema);
         emit_pattern_keyword<spec::string<Options...>>(schema);
         return {};
     }
@@ -674,6 +689,7 @@ struct base_schema_emitter<spec::array_of<ElementSpec, Options...>> {
         JsonObject schema = destination.to<JsonObject>();
         schema["type"] = "array";
         emit_min_max_elements_keywords<spec::array_of<ElementSpec, Options...>>(schema);
+        emit_not_empty_keyword<spec::array_of<ElementSpec, Options...>>(schema);
 
         JsonVariant item_schema = schema["items"].template to<JsonVariant>();
         return schema_emitter<ElementSpec>::emit(item_schema);

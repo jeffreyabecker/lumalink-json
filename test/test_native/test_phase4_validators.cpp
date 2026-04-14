@@ -76,8 +76,19 @@ using bounded_values_spec = lumalink::json::spec::array_of<
     lumalink::json::spec::integer<>,
     lumalink::json::opts::min_max_elements<1, 3>>;
 using bounded_integer_spec = lumalink::json::spec::integer<lumalink::json::opts::min_max_value<10, 20>>;
+using custom_message_integer_spec =
+    lumalink::json::spec::integer<lumalink::json::opts::min_max_value<10, 20, "speed must be between 10 and 20">>;
+using custom_message_values_spec = lumalink::json::spec::array_of<
+    lumalink::json::spec::integer<>,
+    lumalink::json::opts::min_max_elements<1, 3, "history must contain between 1 and 3 items">>;
 using uppercase_string_spec_phase4 =
     lumalink::json::spec::string<lumalink::json::opts::pattern<is_uppercase_token_phase4>>;
+using custom_message_pattern_spec = lumalink::json::spec::string<
+    lumalink::json::opts::pattern<is_uppercase_token_phase4, "^[A-Z]+$", "token must be uppercase">>;
+using non_empty_string_spec_phase4 = lumalink::json::spec::string<lumalink::json::opts::not_empty<"segment key is required">>;
+using non_empty_array_spec_phase4 = lumalink::json::spec::array_of<
+    lumalink::json::spec::integer<>,
+    lumalink::json::opts::not_empty<"runs must not be empty">>;
 
 } // namespace
 
@@ -283,6 +294,62 @@ void test_val_10_pattern_accepts_and_rejects_values() {
         lumalink::json::error_code::pattern_mismatch);
 }
 
+void test_val_11_not_empty_accepts_and_rejects_values() {
+    lumalink::json::test_support::native_fixture accepted_fixture;
+    accepted_fixture.parse_or_fail(R"("READY")");
+    TEST_ASSERT_EQUAL_STRING(
+        "READY",
+        lumalink::json::test_support::assert_expected_success(
+            lumalink::json::deserialize<std::string, non_empty_string_spec_phase4>(accepted_fixture.root())).c_str());
+
+    lumalink::json::test_support::native_fixture rejected_fixture;
+    rejected_fixture.parse_or_fail(R"("")");
+    const auto& string_failure = lumalink::json::test_support::assert_expected_error(
+        lumalink::json::deserialize<std::string, non_empty_string_spec_phase4>(rejected_fixture.root()),
+        lumalink::json::error_code::validation_failed);
+    TEST_ASSERT_EQUAL_STRING("segment key is required", std::string(string_failure.message).c_str());
+
+    lumalink::json::test_support::native_fixture array_fixture;
+    array_fixture.parse_or_fail("[]");
+    const auto& array_failure = lumalink::json::test_support::assert_expected_error(
+        lumalink::json::deserialize<std::vector<int>, non_empty_array_spec_phase4>(array_fixture.root()),
+        lumalink::json::error_code::validation_failed);
+    TEST_ASSERT_EQUAL_STRING("runs must not be empty", std::string(array_failure.message).c_str());
+
+    JsonDocument encoded;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::serialize<non_empty_string_spec_phase4>(std::string("READY"), encoded));
+    const auto& encode_failure = lumalink::json::test_support::assert_expected_error(
+        lumalink::json::serialize<non_empty_string_spec_phase4>(std::string(""), encoded),
+        lumalink::json::error_code::validation_failed);
+    TEST_ASSERT_EQUAL_STRING("segment key is required", std::string(encode_failure.message).c_str());
+}
+
+void test_val_12_builtin_validation_options_can_override_failure_messages() {
+    lumalink::json::test_support::native_fixture range_fixture;
+    range_fixture.parse_or_fail("9");
+    const auto& range_failure = lumalink::json::test_support::assert_expected_error(
+        lumalink::json::deserialize<int, custom_message_integer_spec>(range_fixture.root()),
+        lumalink::json::error_code::value_out_of_range);
+    TEST_ASSERT_EQUAL_STRING("speed must be between 10 and 20", std::string(range_failure.message).c_str());
+
+    lumalink::json::test_support::native_fixture pattern_fixture;
+    pattern_fixture.parse_or_fail(R"("Auto")");
+    const auto& pattern_failure = lumalink::json::test_support::assert_expected_error(
+        lumalink::json::deserialize<std::string, custom_message_pattern_spec>(pattern_fixture.root()),
+        lumalink::json::error_code::pattern_mismatch);
+    TEST_ASSERT_EQUAL_STRING("token must be uppercase", std::string(pattern_failure.message).c_str());
+
+    lumalink::json::test_support::native_fixture array_fixture;
+    array_fixture.parse_or_fail("[]");
+    const auto& array_failure = lumalink::json::test_support::assert_expected_error(
+        lumalink::json::deserialize<std::vector<int>, custom_message_values_spec>(array_fixture.root()),
+        lumalink::json::error_code::value_out_of_range);
+    TEST_ASSERT_EQUAL_STRING(
+        "history must contain between 1 and 3 items",
+        std::string(array_failure.message).c_str());
+}
+
 void run_phase4_validator_tests() {
     RUN_TEST(test_val_01_boolean_return_validator_success);
     RUN_TEST(test_val_02_boolean_return_validator_failure);
@@ -294,4 +361,6 @@ void run_phase4_validator_tests() {
     RUN_TEST(test_val_08_min_max_elements_lower_and_upper_bounds);
     RUN_TEST(test_val_09_min_max_value_lower_and_upper_bounds);
     RUN_TEST(test_val_10_pattern_accepts_and_rejects_values);
+    RUN_TEST(test_val_11_not_empty_accepts_and_rejects_values);
+    RUN_TEST(test_val_12_builtin_validation_options_can_override_failure_messages);
 }

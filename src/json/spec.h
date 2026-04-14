@@ -90,6 +90,7 @@ struct spec_descriptor<spec::null<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
@@ -100,6 +101,7 @@ struct spec_descriptor<spec::boolean<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
@@ -110,6 +112,7 @@ struct spec_descriptor<spec::integer<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
@@ -120,6 +123,7 @@ struct spec_descriptor<spec::number<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
@@ -130,6 +134,7 @@ struct spec_descriptor<spec::string<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
@@ -140,6 +145,7 @@ struct spec_descriptor<spec::enum_string<EnumOrCodec, Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
@@ -150,6 +156,7 @@ struct spec_descriptor<spec::any<Options...>> {
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
     using min_max_elements_option = void;
     using pattern_option = typename first_pattern_option<Options...>::type;
+    using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
@@ -160,6 +167,7 @@ struct spec_descriptor<spec::with_codec<InnerSpec, Codec>> {
     using min_max_value_option = typename spec_descriptor<InnerSpec>::min_max_value_option;
     using min_max_elements_option = typename spec_descriptor<InnerSpec>::min_max_elements_option;
     using pattern_option = typename spec_descriptor<InnerSpec>::pattern_option;
+    using not_empty_option = typename spec_descriptor<InnerSpec>::not_empty_option;
     using validator_option = typename spec_descriptor<InnerSpec>::validator_option;
 };
 
@@ -170,6 +178,7 @@ struct spec_descriptor<spec::field<Key, ValueSpec, Options...>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using not_empty_option = void;
     using validator_option = void;
 };
 
@@ -180,6 +189,7 @@ struct spec_descriptor<spec::object<Fields...>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using not_empty_option = void;
     using validator_option = void;
 };
 
@@ -190,6 +200,7 @@ struct spec_descriptor<spec::array_of<ElementSpec, Options...>> {
     using min_max_value_option = void;
     using min_max_elements_option = typename first_min_max_elements_option<Options...>::type;
     using pattern_option = void;
+    using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
@@ -200,6 +211,7 @@ struct spec_descriptor<spec::tuple<Specs...>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using not_empty_option = void;
     using validator_option = void;
 };
 
@@ -210,6 +222,7 @@ struct spec_descriptor<spec::optional<ValueSpec>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using not_empty_option = void;
     using validator_option = void;
 };
 
@@ -220,6 +233,7 @@ struct spec_descriptor<spec::one_of<Specs...>> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using not_empty_option = void;
     using validator_option = void;
 };
 
@@ -230,6 +244,7 @@ struct spec_descriptor<spec::error_context_entry> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using not_empty_option = void;
     using validator_option = void;
 };
 
@@ -240,6 +255,7 @@ struct spec_descriptor<spec::error_context> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using not_empty_option = void;
     using validator_option = void;
 };
 
@@ -250,6 +266,7 @@ struct spec_descriptor<spec::error> {
     using min_max_value_option = void;
     using min_max_elements_option = void;
     using pattern_option = void;
+    using not_empty_option = void;
     using validator_option = void;
 };
 

@@ -15,26 +15,45 @@ struct name {
     }
 };
 
-template <auto Min, auto Max>
+template <auto Min, auto Max, fixed_string Message = "">
 struct min_max_value {
     static constexpr auto min = Min;
     static constexpr auto max = Max;
+
+    [[nodiscard]] static constexpr std::string_view message() noexcept {
+        return Message.view();
+    }
 };
 
-template <auto Min, auto Max>
+template <auto Min, auto Max, fixed_string Message = "">
 struct min_max_elements {
     static_assert(Min <= Max, "opts::min_max_elements requires Min <= Max");
 
     static constexpr size_t min = static_cast<size_t>(Min);
     static constexpr size_t max = static_cast<size_t>(Max);
+
+    [[nodiscard]] static constexpr std::string_view message() noexcept {
+        return Message.view();
+    }
 };
 
-template <auto Predicate, fixed_string SchemaPattern = "">
+template <auto Predicate, fixed_string SchemaPattern = "", fixed_string Message = "">
 struct pattern {
     static constexpr auto value = Predicate;
 
     [[nodiscard]] static constexpr std::string_view schema() noexcept {
         return SchemaPattern.view();
+    }
+
+    [[nodiscard]] static constexpr std::string_view message() noexcept {
+        return Message.view();
+    }
+};
+
+template <fixed_string Message = "">
+struct not_empty {
+    [[nodiscard]] static constexpr std::string_view message() noexcept {
+        return Message.view();
     }
 };
 
@@ -125,20 +144,26 @@ struct is_name_option<opts::name<Name>> : std::true_type {};
 template <typename Option>
 struct is_min_max_value_option : std::false_type {};
 
-template <auto Min, auto Max>
-struct is_min_max_value_option<opts::min_max_value<Min, Max>> : std::true_type {};
+template <auto Min, auto Max, fixed_string Message>
+struct is_min_max_value_option<opts::min_max_value<Min, Max, Message>> : std::true_type {};
 
 template <typename Option>
 struct is_min_max_elements_option : std::false_type {};
 
-template <auto Min, auto Max>
-struct is_min_max_elements_option<opts::min_max_elements<Min, Max>> : std::true_type {};
+template <auto Min, auto Max, fixed_string Message>
+struct is_min_max_elements_option<opts::min_max_elements<Min, Max, Message>> : std::true_type {};
 
 template <typename Option>
 struct is_pattern_option : std::false_type {};
 
-template <auto Predicate, fixed_string SchemaPattern>
-struct is_pattern_option<opts::pattern<Predicate, SchemaPattern>> : std::true_type {};
+template <auto Predicate, fixed_string SchemaPattern, fixed_string Message>
+struct is_pattern_option<opts::pattern<Predicate, SchemaPattern, Message>> : std::true_type {};
+
+template <typename Option>
+struct is_not_empty_option : std::false_type {};
+
+template <fixed_string Message>
+struct is_not_empty_option<opts::not_empty<Message>> : std::true_type {};
 
 template <typename Option>
 struct is_validator_option : std::false_type {};
@@ -168,6 +193,10 @@ inline constexpr size_t min_max_elements_option_count_v =
 template <typename... Options>
 inline constexpr size_t pattern_option_count_v =
     (0U + ... + static_cast<size_t>(is_pattern_option<Options>::value));
+
+template <typename... Options>
+inline constexpr size_t not_empty_option_count_v =
+    (0U + ... + static_cast<size_t>(is_not_empty_option<Options>::value));
 
 template <typename... Options>
 inline constexpr size_t validator_option_count_v =
@@ -212,6 +241,7 @@ struct scalar_option_contract {
         min_max_value_option_count_v<Options...> <= 1U,
         "duplicate opts::min_max_value options are not allowed");
     static_assert(pattern_option_count_v<Options...> <= 1U, "duplicate opts::pattern options are not allowed");
+    static_assert(not_empty_option_count_v<Options...> <= 1U, "duplicate opts::not_empty options are not allowed");
     static_assert(
         validator_option_count_v<Options...> <= 1U,
         "duplicate opts::validator_func options are not allowed");
@@ -223,6 +253,7 @@ struct composite_option_contract {
     static_assert(
         min_max_elements_option_count_v<Options...> <= 1U,
         "duplicate opts::min_max_elements options are not allowed");
+    static_assert(not_empty_option_count_v<Options...> <= 1U, "duplicate opts::not_empty options are not allowed");
     static_assert(
         validator_option_count_v<Options...> <= 1U,
         "duplicate opts::validator_func options are not allowed");
@@ -270,6 +301,19 @@ struct first_pattern_option<First, Rest...> {
         is_pattern_option<First>::value,
         First,
         typename first_pattern_option<Rest...>::type>;
+};
+
+template <typename... Options>
+struct first_not_empty_option {
+    using type = void;
+};
+
+template <typename First, typename... Rest>
+struct first_not_empty_option<First, Rest...> {
+    using type = std::conditional_t<
+        is_not_empty_option<First>::value,
+        First,
+        typename first_not_empty_option<Rest...>::type>;
 };
 
 template <typename... Options>

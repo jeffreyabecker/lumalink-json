@@ -126,17 +126,19 @@ inline DeserializationError deserialize_raw_json(
         DeserializationOption::NestingLimit(options.nesting_limit));
 }
 
+    template <typename Option>
+    [[nodiscard]] constexpr std::string_view option_message_or(const std::string_view fallback) noexcept;
+
 template <typename Spec>
 [[nodiscard]] constexpr expected_void check_pattern(
     const std::string_view value,
-    const context_policy policy,
-    const std::string_view failure_message = "pattern mismatch") noexcept {
+    const context_policy policy) noexcept {
     using pattern_option = typename spec_descriptor<Spec>::pattern_option;
+    constexpr auto failure_message = option_message_or<pattern_option>("pattern mismatch");
 
     if constexpr (std::is_void_v<pattern_option>) {
         (void)value;
         (void)policy;
-        (void)failure_message;
         return {};
     } else {
         if (!static_cast<bool>(pattern_option::value(value))) {
@@ -155,6 +157,71 @@ struct is_expected_error_code_result<std::expected<void, error_code>> : std::tru
 
 template <typename T>
 inline constexpr bool is_expected_error_code_result_v = is_expected_error_code_result<remove_cvref_t<T>>::value;
+
+template <typename Option>
+[[nodiscard]] constexpr std::string_view option_message_or(const std::string_view fallback) noexcept {
+    if constexpr (std::is_void_v<Option>) {
+        return fallback;
+    } else if constexpr (requires { Option::message(); }) {
+        const auto message = Option::message();
+        return message.empty() ? fallback : message;
+    } else {
+        return fallback;
+    }
+}
+
+template <typename T, typename = void>
+struct has_empty_method : std::false_type {};
+
+template <typename T>
+struct has_empty_method<T, std::void_t<decltype(std::declval<const remove_cvref_t<T>&>().empty())>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool has_empty_method_v = has_empty_method<T>::value;
+
+template <typename T, typename = void>
+struct has_size_method : std::false_type {};
+
+template <typename T>
+struct has_size_method<T, std::void_t<decltype(std::declval<const remove_cvref_t<T>&>().size())>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool has_size_method_v = has_size_method<T>::value;
+
+template <typename T>
+[[nodiscard]] constexpr bool not_empty_value(const T& value) {
+    if constexpr (has_empty_method_v<T>) {
+        return !static_cast<bool>(value.empty());
+    } else if constexpr (has_size_method_v<T>) {
+        return value.size() != 0U;
+    } else if constexpr (std::is_convertible_v<T, std::string_view>) {
+        return !std::string_view{value}.empty();
+    } else {
+        static_assert(
+            always_false_v<T>,
+            "opts::not_empty requires a value type with empty(), size(), or string-view conversion");
+    }
+}
+
+template <typename Spec, typename Value>
+[[nodiscard]] expected_void check_not_empty(
+    const Value& value,
+    const context_policy policy) {
+    using not_empty_option = typename spec_descriptor<Spec>::not_empty_option;
+    constexpr auto failure_message = option_message_or<not_empty_option>("value must not be empty");
+
+    if constexpr (std::is_void_v<not_empty_option>) {
+        (void)value;
+        (void)policy;
+        return {};
+    } else {
+        if (not_empty_value(value)) {
+            return {};
+        }
+
+        return std::unexpected(make_error<Spec>(error_code::validation_failed, policy, failure_message));
+    }
+}
 
 template <typename Spec, typename Value>
 [[nodiscard]] expected_void run_validator(
@@ -202,14 +269,13 @@ template <typename Spec, typename Value>
 template <typename Target, typename Spec>
 [[nodiscard]] constexpr expected_void check_min_max_value(
     const Target value,
-    const context_policy policy,
-    const std::string_view failure_message = "value out of range") noexcept {
+    const context_policy policy) noexcept {
     using range_option = typename spec_descriptor<Spec>::min_max_value_option;
+    constexpr auto failure_message = option_message_or<range_option>("value out of range");
 
     if constexpr (std::is_void_v<range_option>) {
         (void)value;
         (void)policy;
-        (void)failure_message;
         return {};
     } else {
         using compare_type = long double;
@@ -523,6 +589,11 @@ struct decoder<spec::string<Options...>, T, std::enable_if_t<detail::is_supporte
         const char* raw = source.as<const char*>();
         const std::string_view value = raw == nullptr ? std::string_view{} : std::string_view{raw, std::strlen(raw)};
 
+        const auto not_empty_result = detail::check_not_empty<spec::string<Options...>>(value, state.context);
+        if (!not_empty_result.has_value()) {
+            return std::unexpected(not_empty_result.error());
+        }
+
         const auto pattern_result = detail::check_pattern<spec::string<Options...>>(value, state.context);
         if (!pattern_result.has_value()) {
             return std::unexpected(pattern_result.error());
@@ -574,6 +645,11 @@ struct encoder<spec::string<Options...>, T, std::enable_if_t<detail::is_supporte
             }
 
             view = std::string_view{value, std::strlen(value)};
+        }
+
+        const auto not_empty_result = detail::check_not_empty<spec::string<Options...>>(view, state.context);
+        if (!not_empty_result.has_value()) {
+            return std::unexpected(not_empty_result.error());
         }
 
         const auto pattern_result = detail::check_pattern<spec::string<Options...>>(view, state.context);
