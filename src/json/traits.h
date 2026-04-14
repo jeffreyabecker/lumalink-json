@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string_view>
 
 namespace lumalink::json {
@@ -7,6 +8,26 @@ namespace lumalink::json {
 template <typename Derived, typename Enum>
 struct enum_codec {
     using enum_type = Enum;
+
+    [[nodiscard]] static constexpr std::optional<Enum> value_from_token(const std::string_view token) noexcept {
+        for (const auto& entry : Derived::values) {
+            if (entry.token == token) {
+                return entry.value;
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    [[nodiscard]] static constexpr std::optional<std::string_view> token_from_value(const Enum value) noexcept {
+        for (const auto& entry : Derived::values) {
+            if (entry.value == value) {
+                return entry.token;
+            }
+        }
+
+        return std::nullopt;
+    }
 };
 
 } // namespace lumalink::json

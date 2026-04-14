@@ -241,9 +241,15 @@ template <typename EnumOrCodec>
         has_enum_mapping<EnumOrCodec>::value,
         "enum_string requires either json::traits::enum_strings specialization or a lumalink::json::enum_codec-derived type with values");
 
-    for (const auto& entry : mapping_provider::values()) {
-        if (entry.token == token) {
-            return entry.value;
+    if constexpr (requires { EnumOrCodec::value_from_token(token); }) {
+        if (const auto value = EnumOrCodec::value_from_token(token); value.has_value()) {
+            return *value;
+        }
+    } else {
+        for (const auto& entry : mapping_provider::values()) {
+            if (entry.token == token) {
+                return entry.value;
+            }
         }
     }
 
@@ -265,9 +271,15 @@ template <typename EnumOrCodec>
         has_enum_mapping<EnumOrCodec>::value,
         "enum_string requires either json::traits::enum_strings specialization or a lumalink::json::enum_codec-derived type with values");
 
-    for (const auto& entry : mapping_provider::values()) {
-        if (entry.value == value) {
-            return entry.token;
+    if constexpr (requires { EnumOrCodec::token_from_value(value); }) {
+        if (const auto token = EnumOrCodec::token_from_value(value); token.has_value()) {
+            return *token;
+        }
+    } else {
+        for (const auto& entry : mapping_provider::values()) {
+            if (entry.value == value) {
+                return entry.token;
+            }
         }
     }
 
