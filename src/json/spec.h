@@ -57,6 +57,12 @@ struct with_codec {
     using codec_type = Codec;
 };
 
+template <typename InnerSpec, typename Binding>
+struct with_object_binding {
+    using inner_spec = InnerSpec;
+    using binding_type = Binding;
+};
+
 template <fixed_string Key, typename ValueSpec, typename... Options>
 struct field : detail::field_option_contract<Options...> {
     using value_spec = ValueSpec;
@@ -174,6 +180,46 @@ struct enum_value_list_matches_enum<Enum, Values, std::void_t<typename enum_valu
 template <typename Enum, typename Values>
 inline constexpr bool enum_value_list_matches_enum_v = enum_value_list_matches_enum<Enum, Values>::value;
 
+template <typename Spec, typename Binding>
+struct apply_object_binding {
+    using type = Spec;
+};
+
+template <fixed_string Key, typename ValueSpec, typename... Options, typename Binding>
+struct apply_object_binding<spec::field<Key, ValueSpec, Options...>, Binding> {
+    using type = spec::field<Key, typename apply_object_binding<ValueSpec, Binding>::type, Options...>;
+};
+
+template <typename... Fields, typename Binding>
+struct apply_object_binding<spec::object<Fields...>, Binding> {
+    using type = spec::with_object_binding<spec::object<typename apply_object_binding<Fields, Binding>::type...>, Binding>;
+};
+
+template <typename ElementSpec, typename... Options, typename Binding>
+struct apply_object_binding<spec::array_of<ElementSpec, Options...>, Binding> {
+    using type = spec::array_of<typename apply_object_binding<ElementSpec, Binding>::type, Options...>;
+};
+
+template <typename... Specs, typename Binding>
+struct apply_object_binding<spec::tuple<Specs...>, Binding> {
+    using type = spec::tuple<typename apply_object_binding<Specs, Binding>::type...>;
+};
+
+template <typename ValueSpec, typename Binding>
+struct apply_object_binding<spec::optional<ValueSpec>, Binding> {
+    using type = spec::optional<typename apply_object_binding<ValueSpec, Binding>::type>;
+};
+
+template <typename... Specs, typename Binding>
+struct apply_object_binding<spec::one_of<Specs...>, Binding> {
+    using type = spec::one_of<typename apply_object_binding<Specs, Binding>::type...>;
+};
+
+template <typename InnerSpec, typename Codec, typename Binding>
+struct apply_object_binding<spec::with_codec<InnerSpec, Codec>, Binding> {
+    using type = spec::with_codec<typename apply_object_binding<InnerSpec, Binding>::type, Codec>;
+};
+
 template <typename Spec>
 struct spec_descriptor;
 
@@ -262,6 +308,17 @@ struct spec_descriptor<spec::any<Options...>> {
 
 template <typename InnerSpec, typename Codec>
 struct spec_descriptor<spec::with_codec<InnerSpec, Codec>> {
+    static constexpr node_kind kind = spec_descriptor<InnerSpec>::kind;
+    using name_option = typename spec_descriptor<InnerSpec>::name_option;
+    using min_max_value_option = typename spec_descriptor<InnerSpec>::min_max_value_option;
+    using min_max_elements_option = typename spec_descriptor<InnerSpec>::min_max_elements_option;
+    using pattern_option = typename spec_descriptor<InnerSpec>::pattern_option;
+    using not_empty_option = typename spec_descriptor<InnerSpec>::not_empty_option;
+    using validator_option = typename spec_descriptor<InnerSpec>::validator_option;
+};
+
+template <typename InnerSpec, typename Binding>
+struct spec_descriptor<spec::with_object_binding<InnerSpec, Binding>> {
     static constexpr node_kind kind = spec_descriptor<InnerSpec>::kind;
     using name_option = typename spec_descriptor<InnerSpec>::name_option;
     using min_max_value_option = typename spec_descriptor<InnerSpec>::min_max_value_option;

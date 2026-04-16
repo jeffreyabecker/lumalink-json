@@ -218,6 +218,16 @@ struct has_explicit_object_fields<
 template <typename Model>
 inline constexpr bool has_explicit_object_fields_v = has_explicit_object_fields<Model>::value;
 
+template <typename Binding, typename Model, typename = void>
+struct has_bound_object_fields : std::false_type {};
+
+template <typename Binding, typename Model>
+struct has_bound_object_fields<Binding, Model, std::void_t<typename Binding::model_type, decltype(Binding::members)>>
+    : std::bool_constant<std::is_same_v<model_type_t<Model>, typename Binding::model_type>> {};
+
+template <typename Binding, typename Model>
+inline constexpr bool has_bound_object_fields_v = has_bound_object_fields<Binding, Model>::value;
+
 template <typename MemberPointer>
 struct member_pointer_traits;
 
@@ -229,6 +239,37 @@ struct member_pointer_traits<Member Class::*> {
 
 template <typename Model>
 using explicit_object_fields_tuple_t = remove_cvref_t<decltype(traits::object_fields<model_type_t<Model>>::members)>;
+
+template <typename Model, typename Binding, typename = void>
+struct selected_object_fields;
+
+template <typename Model, typename Binding>
+struct selected_object_fields<Model, Binding, std::enable_if_t<has_bound_object_fields_v<Binding, Model>>> {
+    using tuple_type = remove_cvref_t<decltype(Binding::members)>;
+
+    [[nodiscard]] static constexpr const tuple_type& members() noexcept {
+        return Binding::members;
+    }
+};
+
+template <typename Model, typename Binding>
+struct selected_object_fields<
+    Model,
+    Binding,
+    std::enable_if_t<!has_bound_object_fields_v<Binding, Model> && has_explicit_object_fields_v<Model>>> {
+    using tuple_type = explicit_object_fields_tuple_t<Model>;
+
+    [[nodiscard]] static constexpr const tuple_type& members() noexcept {
+        return traits::object_fields<model_type_t<Model>>::members;
+    }
+};
+
+template <typename Model, typename Binding>
+using selected_object_fields_tuple_t = typename selected_object_fields<Model, Binding>::tuple_type;
+
+template <typename Model, typename Binding>
+inline constexpr bool has_selected_object_fields_v =
+    has_bound_object_fields_v<Binding, Model> || has_explicit_object_fields_v<Model>;
 
 template <typename Model, typename MemberPointer, typename = void>
 struct is_compatible_object_field_pointer : std::false_type {};
@@ -250,67 +291,74 @@ template <typename Model, typename FieldTuple>
 inline constexpr bool explicit_object_fields_are_valid_v = explicit_object_fields_are_valid<Model, FieldTuple>(
     std::make_index_sequence<std::tuple_size_v<FieldTuple>>{});
 
-template <typename Model, size_t FieldCount>
+template <typename Model, size_t FieldCount, typename Binding = void>
 inline constexpr bool can_traverse_object_fields_v =
-    has_explicit_object_fields_v<Model> ||
-    (!has_explicit_object_fields_v<Model> && std::is_aggregate_v<model_type_t<Model>> &&
+    has_selected_object_fields_v<Model, Binding> ||
+    (!has_selected_object_fields_v<Model, Binding> && std::is_aggregate_v<model_type_t<Model>> &&
      !std::is_union_v<model_type_t<Model>> && !std::is_polymorphic_v<model_type_t<Model>> &&
      FieldCount <= pfr_arity_limit);
 
-template <typename Model, size_t FieldCount, typename Enable = void>
+template <typename Model, size_t FieldCount, typename Binding = void, typename Enable = void>
 struct object_binding_contract {
     static_assert(
         std::is_class_v<model_type_t<Model>>,
         "spec::object auto-binding requires a struct or class model type");
     static_assert(
         std::is_aggregate_v<model_type_t<Model>>,
-        "spec::object auto-binding requires an aggregate model type or explicit field trait registration");
+        "spec::object auto-binding requires an aggregate model type, an explicit binding trait, or json::traits::object_fields registration");
 };
 
-template <typename Model, size_t FieldCount>
-struct object_binding_contract<Model, FieldCount, std::enable_if_t<has_explicit_object_fields_v<Model>>> {
+template <typename Model, size_t FieldCount, typename Binding>
+struct object_binding_contract<
+    Model,
+    FieldCount,
+    Binding,
+    std::enable_if_t<has_selected_object_fields_v<Model, Binding>>> {
     static_assert(
         std::is_class_v<model_type_t<Model>>,
         "spec::object binding requires a struct or class model type");
 
-    using field_tuple = explicit_object_fields_tuple_t<Model>;
+    using field_tuple = selected_object_fields_tuple_t<Model, Binding>;
 
     static_assert(
         std::tuple_size_v<field_tuple> == FieldCount,
-        "object field count must match the explicit field trait arity");
+        "object field count must match the explicit binding field arity");
     static_assert(
         explicit_object_fields_are_valid_v<Model, field_tuple>,
-        "json::traits::object_fields must contain member object pointers compatible with the bound model type");
+        "explicit object bindings must contain member object pointers compatible with the bound model type");
 };
 
-template <typename Model, size_t FieldCount>
+template <typename Model, size_t FieldCount, typename Binding>
 struct object_binding_contract<
     Model,
     FieldCount,
-    std::enable_if_t<!has_explicit_object_fields_v<Model> && std::is_union_v<model_type_t<Model>>>> {
+    Binding,
+    std::enable_if_t<!has_selected_object_fields_v<Model, Binding> && std::is_union_v<model_type_t<Model>>>> {
     static_assert(
         !std::is_union_v<model_type_t<Model>>,
-        "spec::object auto-binding does not support unions; use explicit field trait registration");
+        "spec::object auto-binding does not support unions; use an explicit binding trait or json::traits::object_fields registration");
 };
 
-template <typename Model, size_t FieldCount>
+template <typename Model, size_t FieldCount, typename Binding>
 struct object_binding_contract<
     Model,
     FieldCount,
+    Binding,
     std::enable_if_t<
-        !has_explicit_object_fields_v<Model> && !std::is_union_v<model_type_t<Model>> &&
+        !has_selected_object_fields_v<Model, Binding> && !std::is_union_v<model_type_t<Model>> &&
         std::is_polymorphic_v<model_type_t<Model>>>> {
     static_assert(
         !std::is_polymorphic_v<model_type_t<Model>>,
-        "spec::object auto-binding does not support polymorphic types; use explicit field trait registration");
+        "spec::object auto-binding does not support polymorphic types; use an explicit binding trait or json::traits::object_fields registration");
 };
 
-template <typename Model, size_t FieldCount>
+template <typename Model, size_t FieldCount, typename Binding>
 struct object_binding_contract<
     Model,
     FieldCount,
+    Binding,
     std::enable_if_t<
-        !has_explicit_object_fields_v<Model> && !std::is_union_v<model_type_t<Model>> &&
+        !has_selected_object_fields_v<Model, Binding> && !std::is_union_v<model_type_t<Model>> &&
         !std::is_polymorphic_v<model_type_t<Model>> &&
         std::is_aggregate_v<model_type_t<Model>>>> {
     static_assert(FieldCount <= pfr_arity_limit, "object auto-binding exceeds the supported PFR arity limit");
@@ -321,34 +369,34 @@ struct object_binding_contract<
     static_assert(arity == FieldCount, "object field count must match the bound aggregate arity");
 };
 
-template <typename Model, size_t FieldCount>
+template <typename Model, size_t FieldCount, typename Binding = void>
 constexpr void validate_object_binding_target() noexcept {
-    (void)sizeof(object_binding_contract<Model, FieldCount>);
+    (void)sizeof(object_binding_contract<Model, FieldCount, Binding>);
 }
 
 template <size_t Index, typename T>
 using pfr_field_t = remove_cvref_t<decltype(pfr::get<Index>(std::declval<T&>()))>;
 
-template <size_t Index, typename Model>
+template <size_t Index, typename Model, typename Binding = void>
 decltype(auto) bound_object_field(Model& value) {
-    if constexpr (has_explicit_object_fields_v<Model>) {
-        return value.*std::get<Index>(traits::object_fields<model_type_t<Model>>::members);
+    if constexpr (has_selected_object_fields_v<Model, Binding>) {
+        return value.*std::get<Index>(selected_object_fields<Model, Binding>::members());
     } else {
         return pfr::get<Index>(value);
     }
 }
 
-template <size_t Index, typename Model>
+template <size_t Index, typename Model, typename Binding = void>
 decltype(auto) bound_object_field(const Model& value) {
-    if constexpr (has_explicit_object_fields_v<Model>) {
-        return value.*std::get<Index>(traits::object_fields<model_type_t<Model>>::members);
+    if constexpr (has_selected_object_fields_v<Model, Binding>) {
+        return value.*std::get<Index>(selected_object_fields<Model, Binding>::members());
     } else {
         return pfr::get<Index>(value);
     }
 }
 
-template <size_t Index, typename Model>
-using bound_field_t = remove_cvref_t<decltype(bound_object_field<Index>(std::declval<Model&>()))>;
+template <size_t Index, typename Model, typename Binding = void>
+using bound_field_t = remove_cvref_t<decltype(bound_object_field<Index, Model, Binding>(std::declval<Model&>()))>;
 
 template <typename FieldSpec>
 [[nodiscard]] constexpr error annotate_field(error value, const context_policy policy) noexcept {
@@ -374,12 +422,12 @@ template <typename Spec>
         policy);
 }
 
-template <size_t Index, typename Model, typename FieldSpec>
+template <size_t Index, typename Model, typename Binding = void, typename FieldSpec>
 expected_void decode_object_field(const JsonObjectConst source, Model& value, const decode_state& state) {
     using field_value_spec = typename FieldSpec::value_spec;
-    using member_type = bound_field_t<Index, Model>;
+    using member_type = bound_field_t<Index, Model, Binding>;
 
-    auto& member = bound_object_field<Index>(value);
+    auto& member = bound_object_field<Index, Model, Binding>(value);
 
     const JsonVariantConst member_source = source[FieldSpec::key_c_str()];
     const bool has_member = !member_source.isUnbound();
@@ -405,14 +453,14 @@ expected_void decode_object_field(const JsonObjectConst source, Model& value, co
     return {};
 }
 
-template <size_t Index, typename Model>
+template <size_t Index, typename Model, typename Binding = void>
 expected_void decode_object_fields(const JsonObjectConst, Model&, const decode_state&) {
     return {};
 }
 
-template <size_t Index, typename Model, typename FirstField, typename... Rest>
+template <size_t Index, typename Model, typename Binding = void, typename FirstField, typename... Rest>
 expected_void decode_object_fields(const JsonObjectConst source, Model& value, const decode_state& state) {
-    auto result = decode_object_field<Index, Model, FirstField>(source, value, state);
+    auto result = decode_object_field<Index, Model, Binding, FirstField>(source, value, state);
     if (!result.has_value()) {
         return result;
     }
@@ -420,16 +468,16 @@ expected_void decode_object_fields(const JsonObjectConst source, Model& value, c
     if constexpr (sizeof...(Rest) == 0U) {
         return {};
     } else {
-        return decode_object_fields<Index + 1U, Model, Rest...>(source, value, state);
+        return decode_object_fields<Index + 1U, Model, Binding, Rest...>(source, value, state);
     }
 }
 
-template <size_t Index, typename Model, typename FieldSpec>
+template <size_t Index, typename Model, typename Binding = void, typename FieldSpec>
 expected_void encode_object_field(const Model& value, JsonObject destination, const encode_state& state) {
     using field_value_spec = typename FieldSpec::value_spec;
-    using member_type = bound_field_t<Index, Model>;
+    using member_type = bound_field_t<Index, Model, Binding>;
 
-    const auto& member = bound_object_field<Index>(value);
+    const auto& member = bound_object_field<Index, Model, Binding>(value);
     if constexpr (is_optional_spec_v<field_value_spec>) {
         static_assert(
             is_std_optional_v<member_type>,
@@ -448,14 +496,14 @@ expected_void encode_object_field(const Model& value, JsonObject destination, co
     return {};
 }
 
-template <size_t Index, typename Model>
+template <size_t Index, typename Model, typename Binding = void>
 expected_void encode_object_fields(const Model&, JsonObject, const encode_state&) {
     return {};
 }
 
-template <size_t Index, typename Model, typename FirstField, typename... Rest>
+template <size_t Index, typename Model, typename Binding = void, typename FirstField, typename... Rest>
 expected_void encode_object_fields(const Model& value, JsonObject destination, const encode_state& state) {
-    auto result = encode_object_field<Index, Model, FirstField>(value, destination, state);
+    auto result = encode_object_field<Index, Model, Binding, FirstField>(value, destination, state);
     if (!result.has_value()) {
         return result;
     }
@@ -463,7 +511,7 @@ expected_void encode_object_fields(const Model& value, JsonObject destination, c
     if constexpr (sizeof...(Rest) == 0U) {
         return {};
     } else {
-        return encode_object_fields<Index + 1U, Model, Rest...>(value, destination, state);
+        return encode_object_fields<Index + 1U, Model, Binding, Rest...>(value, destination, state);
     }
 }
 
@@ -826,6 +874,37 @@ struct decoder<spec::object<Fields...>, T> {
     }
 };
 
+template <typename... Fields, typename Binding, typename T>
+struct decoder<spec::with_object_binding<spec::object<Fields...>, Binding>, T> {
+    using object_spec = spec::object<Fields...>;
+
+    static expected<T> decode(const JsonVariantConst source, const decode_state& state) {
+        detail::validate_object_binding_target<T, sizeof...(Fields), Binding>();
+
+        if constexpr (!detail::can_traverse_object_fields_v<T, sizeof...(Fields), Binding>) {
+            return std::unexpected(detail::make_error<object_spec>(
+                error_code::not_implemented,
+                state.context,
+                "object binding target is invalid"));
+        }
+
+        if (!source.is<JsonObjectConst>()) {
+            return std::unexpected(detail::make_error<object_spec>(
+                error_code::unexpected_type,
+                state.context,
+                "expected object"));
+        }
+
+        T value;
+        auto field_result = detail::decode_object_fields<0U, T, Binding, Fields...>(source.as<JsonObjectConst>(), value, state);
+        if (!field_result.has_value()) {
+            return std::unexpected(detail::annotate<object_spec>(field_result.error(), state.context));
+        }
+
+        return value;
+    }
+};
+
 template <typename... Fields, typename T>
 struct encoder<spec::object<Fields...>, T> {
     static expected_void encode(const T& value, JsonVariant destination, const encode_state& state) {
@@ -842,6 +921,30 @@ struct encoder<spec::object<Fields...>, T> {
         auto field_result = detail::encode_object_fields<0U, T, Fields...>(value, object_destination, state);
         if (!field_result.has_value()) {
             return std::unexpected(detail::annotate<spec::object<Fields...>>(field_result.error(), state.context));
+        }
+
+        return {};
+    }
+};
+
+template <typename... Fields, typename Binding, typename T>
+struct encoder<spec::with_object_binding<spec::object<Fields...>, Binding>, T> {
+    using object_spec = spec::object<Fields...>;
+
+    static expected_void encode(const T& value, JsonVariant destination, const encode_state& state) {
+        detail::validate_object_binding_target<T, sizeof...(Fields), Binding>();
+
+        if constexpr (!detail::can_traverse_object_fields_v<T, sizeof...(Fields), Binding>) {
+            return std::unexpected(detail::make_error<object_spec>(
+                error_code::not_implemented,
+                state.context,
+                "object binding target is invalid"));
+        }
+
+        JsonObject object_destination = destination.to<JsonObject>();
+        auto field_result = detail::encode_object_fields<0U, T, Binding, Fields...>(value, object_destination, state);
+        if (!field_result.has_value()) {
+            return std::unexpected(detail::annotate<object_spec>(field_result.error(), state.context));
         }
 
         return {};

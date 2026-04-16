@@ -108,6 +108,42 @@ using tagged_endpoint_spec = lumalink::json::spec::object<
     lumalink::json::spec::field<"token", project_token_spec>,
     lumalink::json::spec::field<"mode", project_mode_spec>>;
 
+struct tagged_counter_payload_binding {
+    using model_type = tagged_counter_payload;
+
+    static constexpr auto members = std::make_tuple(&tagged_counter_payload::count);
+};
+
+struct tagged_message_payload_binding {
+    using model_type = tagged_message_payload;
+
+    static constexpr auto members = std::make_tuple(&tagged_message_payload::text, &tagged_message_payload::urgent);
+};
+
+struct tagged_endpoint_payload_binding {
+    using model_type = tagged_endpoint_payload;
+
+    static constexpr auto members = std::make_tuple(&tagged_endpoint_payload::token, &tagged_endpoint_payload::mode);
+};
+
+template <typename Payload>
+struct tagged_payload_binding;
+
+template <>
+struct tagged_payload_binding<tagged_counter_payload> {
+    using type = tagged_counter_payload_binding;
+};
+
+template <>
+struct tagged_payload_binding<tagged_message_payload> {
+    using type = tagged_message_payload_binding;
+};
+
+template <>
+struct tagged_payload_binding<tagged_endpoint_payload> {
+    using type = tagged_endpoint_payload_binding;
+};
+
 lumalink::json::expected<project_token> parse_project_token(
     std::string_view token,
     lumalink::json::context_policy policy);
@@ -130,7 +166,7 @@ struct tagged_any_codec {
     static lumalink::json::expected<std::any> decode_payload(
         const JsonVariantConst value_source,
         const lumalink::json::decode_state& state) {
-        auto decoded = lumalink::json::deserialize<Payload, PayloadSpec>(
+        auto decoded = lumalink::json::deserialize<Payload, PayloadSpec, typename tagged_payload_binding<Payload>::type>(
             value_source,
             lumalink::json::decode_options{state.context});
         if (!decoded.has_value()) {
@@ -148,7 +184,10 @@ struct tagged_any_codec {
         object["kind"] = std::string(tagged_payload_kind_token(payload.discriminator));
 
         JsonVariant value_destination = object["value"].template to<JsonVariant>();
-        auto encoded = lumalink::json::serialize<PayloadSpec>(payload, value_destination, lumalink::json::encode_options{state.context});
+        auto encoded = lumalink::json::serialize<
+            PayloadSpec,
+            Payload,
+            typename tagged_payload_binding<Payload>::type>(payload, value_destination, lumalink::json::encode_options{state.context});
         if (!encoded.has_value()) {
             return std::unexpected(lumalink::json::detail::annotate<InnerSpec>(encoded.error(), state.context));
         }
@@ -516,25 +555,6 @@ struct decoder<spec::string<>, std::vector<stop>> {
 };
 
 } // namespace lumalink::json
-
-namespace lumalink::json::traits {
-
-template <>
-struct object_fields<tagged_counter_payload> {
-    static constexpr auto members = std::make_tuple(&tagged_counter_payload::count);
-};
-
-template <>
-struct object_fields<tagged_message_payload> {
-    static constexpr auto members = std::make_tuple(&tagged_message_payload::text, &tagged_message_payload::urgent);
-};
-
-template <>
-struct object_fields<tagged_endpoint_payload> {
-    static constexpr auto members = std::make_tuple(&tagged_endpoint_payload::token, &tagged_endpoint_payload::mode);
-};
-
-} // namespace lumalink::json::traits
 
 void test_ext_01_custom_decoder_specialization_supports_non_standard_targets() {
     lumalink::json::test_support::native_fixture fixture;

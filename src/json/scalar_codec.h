@@ -790,17 +790,18 @@ struct encoder<Spec, JsonDocument> {
     }
 };
 
-template <typename Target, typename Spec>
+template <typename Target, typename Spec, typename Binding = void>
 expected<Target> deserialize(const JsonVariantConst source, const decode_options options = {}) {
-    return decoder<Spec, Target>::decode(source, decode_state{options.context});
+    using bound_spec = typename detail::apply_object_binding<Spec, Binding>::type;
+    return decoder<bound_spec, Target>::decode(source, decode_state{options.context});
 }
 
-template <typename Target, typename Spec>
+template <typename Target, typename Spec, typename Binding = void>
 expected<Target> deserialize(const JsonDocument& document, const decode_options options = {}) {
-    return deserialize<Target, Spec>(document.as<JsonVariantConst>(), options);
+    return deserialize<Target, Spec, Binding>(document.as<JsonVariantConst>(), options);
 }
 
-template <typename Target, typename Spec>
+template <typename Target, typename Spec, typename Binding = void>
 expected<Target> deserialize(const std::string_view source, JsonDocument& document, const decode_options options = {}) {
     const auto parse_error = detail::deserialize_raw_json(document, source, options);
     if (parse_error) {
@@ -811,25 +812,26 @@ expected<Target> deserialize(const std::string_view source, JsonDocument& docume
             static_cast<int>(parse_error.code())});
     }
 
-    return deserialize<Target, Spec>(document.as<JsonVariantConst>(), options);
+    return deserialize<Target, Spec, Binding>(document.as<JsonVariantConst>(), options);
 }
 
-template <typename Target, typename Spec>
+template <typename Target, typename Spec, typename Binding = void>
 expected<Target> deserialize(const std::string_view source, const decode_options options = {}) {
     JsonDocument document;
-    return deserialize<Target, Spec>(source, document, options);
+    return deserialize<Target, Spec, Binding>(source, document, options);
 }
 
-template <typename Spec, typename Source>
+template <typename Spec, typename Source, typename Binding = void>
 expected_void serialize(const Source& value, JsonVariant destination, const encode_options options = {}) {
-    return encoder<Spec, detail::remove_cvref_t<Source>>::encode(value, destination, encode_state{options.context});
+    using bound_spec = typename detail::apply_object_binding<Spec, Binding>::type;
+    return encoder<bound_spec, detail::remove_cvref_t<Source>>::encode(value, destination, encode_state{options.context});
 }
 
-template <typename Spec, typename Source>
+template <typename Spec, typename Source, typename Binding = void>
 expected_void serialize(const Source& value, JsonDocument& document, const encode_options options = {}) {
     document.clear();
     JsonVariant destination = document.to<JsonVariant>();
-    return serialize<Spec>(value, destination, options);
+    return serialize<Spec, Source, Binding>(value, destination, options);
 }
 
 } // namespace lumalink::json
