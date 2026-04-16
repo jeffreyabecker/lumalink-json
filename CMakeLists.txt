@@ -34,6 +34,13 @@ FetchContent_Declare(
 set(ARDUINOJSON_ENABLE_ARDUINO OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(arduinojson)
 
+# Boost.PFR – prefer the upstream Boost.PFR headers instead of the bundled copy.
+FetchContent_Declare(
+    boost_pfr
+    GIT_REPOSITORY https://github.com/boostorg/pfr.git
+    GIT_TAG        2.2.0
+)
+FetchContent_MakeAvailable(boost_pfr)
 # Unity – test framework; only fetched when the test suite is enabled.
 if(LUMALINK_JSON_BUILD_TESTS)
     FetchContent_Declare(
@@ -53,7 +60,7 @@ add_library(LumaLinkJson::LumaLinkJson ALIAS lumalink_json)
 target_include_directories(lumalink_json
     INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libs/pfr>
+    $<BUILD_INTERFACE:${boost_pfr_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 

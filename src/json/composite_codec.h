@@ -7,8 +7,7 @@
 #include <utility>
 #include <variant>
 
-#include <libs/pfr/pfr/core.hpp>
-#include <libs/pfr/pfr/tuple_size.hpp>
+#include <boost/pfr.hpp>
 
 #include <json/scalar_codec.h>
 
