@@ -21,9 +21,49 @@ using aggregate_endpoint_spec = lumalink::json::spec::object<
 
 The JSON keys come from the spec, so the second field above is serialized as `display_name` even though the member is named `label`.
 
-### Explicit `object_fields` Registration
+### Explicit Call-Site Binding
 
-If the model is not auto-bindable, register member pointers explicitly.
+If the model is not auto-bindable, pass a binding trait as the third template argument to `deserialize` and `serialize`.
+
+```cpp
+class manual_device_settings {
+public:
+    int id{};
+    std::string label;
+    bool enabled{};
+};
+
+struct manual_device_settings_binding {
+    using model_type = manual_device_settings;
+
+    static constexpr auto members = std::make_tuple(
+        &manual_device_settings::id,
+        &manual_device_settings::label,
+        &manual_device_settings::enabled);
+};
+
+using manual_device_settings_spec = lumalink::json::spec::object<
+    lumalink::json::spec::field<"id", lumalink::json::spec::integer<>>,
+    lumalink::json::spec::field<"display_name", lumalink::json::spec::string<>>,
+    lumalink::json::spec::field<"enabled", lumalink::json::spec::boolean<>>>;
+
+auto decoded = lumalink::json::deserialize<
+    manual_device_settings,
+    manual_device_settings_spec,
+    manual_device_settings_binding>(R"({"id":7,"display_name":"desk","enabled":true})");
+
+JsonDocument encoded;
+auto encoded_result = lumalink::json::serialize<
+    manual_device_settings_spec,
+    manual_device_settings,
+    manual_device_settings_binding>(*decoded, encoded);
+```
+
+The tuple arity must match the number of `spec::field` declarations, and each pointer must be a member object pointer compatible with the bound model type.
+
+### Legacy `object_fields` Registration
+
+The older `json::traits::object_fields` registration path still works as a fallback.
 
 ```cpp
 class manual_device_settings {
@@ -34,7 +74,7 @@ public:
 };
 
 namespace lumalink::json::traits {
-
+Prefer the call-site form when you want different bindings for the same model in different specs or when you want upgrade prompts to stay local to consumer code instead of adding namespace specializations.
 template <>
 struct object_fields<manual_device_settings> {
     static constexpr auto members = std::make_tuple(

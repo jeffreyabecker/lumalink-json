@@ -28,22 +28,22 @@ All examples below assume ArduinoJson 7 is available and `JsonDocument` is the b
 The public entry points are:
 
 ```cpp
-template <typename Target, typename Spec>
+template <typename Target, typename Spec, typename Binding = void>
 json::expected<Target> deserialize(JsonVariantConst source, json::decode_options options = {});
 
-template <typename Target, typename Spec>
+template <typename Target, typename Spec, typename Binding = void>
 json::expected<Target> deserialize(const JsonDocument& document, json::decode_options options = {});
 
-template <typename Target, typename Spec>
+template <typename Target, typename Spec, typename Binding = void>
 json::expected<Target> deserialize(std::string_view source, JsonDocument& document, json::decode_options options = {});
 
-template <typename Target, typename Spec>
+template <typename Target, typename Spec, typename Binding = void>
 json::expected<Target> deserialize(std::string_view source, json::decode_options options = {});
 
-template <typename Spec, typename Source>
+template <typename Spec, typename Source, typename Binding = void>
 json::expected_void serialize(const Source& value, JsonVariant destination, json::encode_options options = {});
 
-template <typename Spec, typename Source>
+template <typename Spec, typename Source, typename Binding = void>
 json::expected_void serialize(const Source& value, JsonDocument& document, json::encode_options options = {});
 
 template <typename Spec>
@@ -54,6 +54,8 @@ json::expected_void generate_schema(JsonDocument& document);
 ```
 
 All fallible APIs return `std::expected` through `json::expected<T>` or `json::expected_void`.
+
+`Binding` is optional. Leave it as `void` for aggregate auto-binding or when you still use `json::traits::object_fields`. Provide an explicit binding trait when you want to select member pointers at the call site.
 
 ## Quick Start
 

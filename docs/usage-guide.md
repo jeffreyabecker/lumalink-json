@@ -55,6 +55,11 @@ Use [usage/05-schema-and-customization.md](usage/05-schema-and-customization.md)
 
 Use [usage/06-constraints-and-gotchas.md](usage/06-constraints-and-gotchas.md) for the shipped v1 limits and caveats you need to account for when binding JSON to C++ models.
 
+Use [usage/07-upgrading-to-v0.11.0.md](usage/07-upgrading-to-v0.11.0.md) for:
+
+- a before-and-after migration example for explicit call-site object bindings
+- prompt-ready upgrade instructions for downstream consumers still using `json::traits::object_fields`
+
 ## Recommended Reading Order
 
 1. Start with [usage/01-getting-started-and-api.md](usage/01-getting-started-and-api.md).
