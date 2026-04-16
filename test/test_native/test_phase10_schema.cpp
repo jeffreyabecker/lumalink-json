@@ -25,6 +25,20 @@ struct schema_mode_codec : lumalink::json::enum_codec<schema_mode_codec, schema_
     }};
 };
 
+enum class titled_country_code : unsigned char {
+    us,
+    ca,
+    mx,
+};
+
+struct titled_country_code_codec : lumalink::json::enum_codec<titled_country_code_codec, titled_country_code> {
+    static constexpr std::array<lumalink::json::traits::enum_mapping_entry<titled_country_code>, 3> values{{
+        {"US", titled_country_code::us, "United States"},
+        {"CA", titled_country_code::ca, "Canada"},
+        {"MX", titled_country_code::mx, "Mexico"},
+    }};
+};
+
 constexpr bool is_uppercase_schema_value(const std::string_view value) {
     if (value.empty()) {
         return false;
@@ -54,6 +68,7 @@ using tuple_schema_spec = lumalink::json::spec::tuple<
 using one_of_schema_spec =
     lumalink::json::spec::one_of<lumalink::json::spec::integer<>, lumalink::json::spec::string<>>;
 using enum_schema_spec = lumalink::json::spec::enum_string<schema_mode_codec>;
+using titled_enum_schema_spec = lumalink::json::spec::enum_string<titled_country_code_codec>;
 using bounded_integer_schema_spec = lumalink::json::spec::integer<lumalink::json::opts::min_max_value<10, 20>>;
 using patterned_string_schema_spec =
     lumalink::json::spec::string<lumalink::json::opts::pattern<is_uppercase_schema_value, "^[A-Z]+$">>;
@@ -255,6 +270,16 @@ void test_sch_04_enum_string_mappings_emit_enum_token_arrays() {
         serialize_schema_or_fail(schema).c_str());
 }
 
+void test_sch_04b_titled_enum_string_mappings_emit_one_of_const_title_entries() {
+    JsonDocument schema;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::generate_schema<titled_enum_schema_spec>(schema));
+
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"type\":\"string\",\"oneOf\":[{\"const\":\"US\",\"title\":\"United States\"},{\"const\":\"CA\",\"title\":\"Canada\"},{\"const\":\"MX\",\"title\":\"Mexico\"}]}",
+        serialize_schema_or_fail(schema).c_str());
+}
+
 void test_sch_05_supported_options_project_schema_keywords() {
     JsonDocument integer_schema;
     lumalink::json::test_support::assert_expected_success(
@@ -404,6 +429,7 @@ void run_phase10_schema_tests() {
     RUN_TEST(test_sch_02_field_and_object_emit_properties_required_and_stable_order);
     RUN_TEST(test_sch_03_optional_array_tuple_and_one_of_emit_supported_forms);
     RUN_TEST(test_sch_04_enum_string_mappings_emit_enum_token_arrays);
+    RUN_TEST(test_sch_04b_titled_enum_string_mappings_emit_one_of_const_title_entries);
     RUN_TEST(test_sch_05_supported_options_project_schema_keywords);
     RUN_TEST(test_sch_06_not_empty_projects_string_and_array_schema_keywords);
     RUN_TEST(test_sch_07_schema_generation_writes_to_caller_provided_document);

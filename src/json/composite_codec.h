@@ -11,6 +11,8 @@
 
 #include <json/scalar_codec.h>
 
+namespace pfr = boost::pfr;
+
 namespace lumalink::json::detail {
 
 template <typename Spec>

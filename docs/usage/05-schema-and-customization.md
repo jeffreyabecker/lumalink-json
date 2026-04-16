@@ -28,7 +28,7 @@ Supported schema projections include:
 3. `array_of` `items`, `minItems`, and `maxItems`
 4. `tuple` `prefixItems`, `minItems`, and `maxItems`
 5. `optional` and `one_of` as `anyOf`
-6. `enum_string` as string `enum`
+6. `enum_string` as string `enum`, or as `oneOf` with `const` entries when enum mappings provide per-value titles
 7. `min_max_value` as `minimum` and `maximum`
 8. `pattern` only when the option carries a schema literal
 

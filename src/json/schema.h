@@ -222,7 +222,12 @@ struct protected_schema_keyword_validator<spec::enum_string<EnumOrCodec, Options
             return type_result;
         }
 
-        return validate_object_keyword_matches(actual_schema, baseline_schema, "enum");
+        if (auto enum_result = validate_object_keyword_matches(actual_schema, baseline_schema, "enum");
+            !enum_result.has_value()) {
+            return enum_result;
+        }
+
+        return validate_object_keyword_matches(actual_schema, baseline_schema, "oneOf");
     }
 };
 
@@ -610,9 +615,30 @@ struct base_schema_emitter<spec::enum_string<EnumOrCodec, Options...>> {
         JsonObject schema = destination.to<JsonObject>();
         schema["type"] = "string";
 
-        JsonArray enum_values = schema["enum"].template to<JsonArray>();
+        bool has_titles = false;
         for (const auto& entry : mapping_provider::values()) {
-            enum_values.add(std::string(entry.token));
+            if (!entry.title.empty()) {
+                has_titles = true;
+                break;
+            }
+        }
+
+        if (!has_titles) {
+            JsonArray enum_values = schema["enum"].template to<JsonArray>();
+            for (const auto& entry : mapping_provider::values()) {
+                enum_values.add(std::string(entry.token));
+            }
+
+            return {};
+        }
+
+        JsonArray one_of = schema["oneOf"].template to<JsonArray>();
+        for (const auto& entry : mapping_provider::values()) {
+            JsonObject alternative = one_of.add<JsonObject>();
+            alternative["const"] = std::string(entry.token);
+            if (!entry.title.empty()) {
+                alternative["title"] = std::string(entry.title);
+            }
         }
 
         return {};

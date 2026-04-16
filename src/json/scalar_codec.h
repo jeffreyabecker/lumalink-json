@@ -123,7 +123,7 @@ inline DeserializationError deserialize_raw_json(
         document,
         source.data(),
         source.size(),
-        DeserializationOption::NestingLimit(options.nesting_limit));
+        DeserializationOption::NestingLimit(static_cast<uint8_t>(options.nesting_limit)));
 }
 
     template <typename Option>

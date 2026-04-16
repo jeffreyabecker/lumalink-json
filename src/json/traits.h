@@ -38,6 +38,7 @@ template <typename Enum>
 struct enum_mapping_entry {
     std::string_view token{};
     Enum value{};
+    std::string_view title{};
 };
 
 template <typename Enum>
