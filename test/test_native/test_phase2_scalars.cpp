@@ -1,7 +1,6 @@
 #include <ArduinoJson.h>
 #include <unity.h>
 
-#include <array>
 #include <cmath>
 #include <cstdint>
 #include <string>
@@ -36,22 +35,14 @@ constexpr bool is_uppercase_token(const std::string_view value) {
 
 using uppercase_string_spec = lumalink::json::spec::string<lumalink::json::opts::pattern<is_uppercase_token>>;
 using bounded_integer_spec = lumalink::json::spec::integer<lumalink::json::opts::min_max_value<10, 20>>;
-using enum_mode_spec = lumalink::json::spec::enum_string<test_mode>;
+using enum_mode_spec = lumalink::json::spec::enum_string<
+    test_mode,
+    lumalink::json::spec::enum_values<
+        lumalink::json::spec::enum_value<test_mode::automatic, "auto">,
+        lumalink::json::spec::enum_value<test_mode::manual, "manual">,
+        lumalink::json::spec::enum_value<test_mode::disabled, "disabled">>>;
 
 } // namespace
-
-namespace lumalink::json::traits {
-
-template <>
-struct enum_strings<test_mode> {
-    static constexpr std::array<enum_mapping_entry<test_mode>, 3> values{{
-        {"auto", test_mode::automatic},
-        {"manual", test_mode::manual},
-        {"disabled", test_mode::disabled},
-    }};
-};
-
-} // namespace lumalink::json::traits
 
 void test_scl_01_null_decode_success_from_json_null() {
     lumalink::json::test_support::native_fixture fixture;

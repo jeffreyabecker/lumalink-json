@@ -1,7 +1,6 @@
 #include <ArduinoJson.h>
 #include <unity.h>
 
-#include <array>
 #include <expected>
 #include <string>
 #include <string_view>
@@ -81,21 +80,14 @@ using sample_envelope_spec = lumalink::json::spec::object<
 using named_mode_spec = lumalink::json::spec::object<
     lumalink::json::spec::field<
         "mode",
-        lumalink::json::spec::enum_string<error_test_mode, lumalink::json::opts::name<"selected_mode">>>>;
+        lumalink::json::spec::enum_string<
+            error_test_mode,
+            lumalink::json::spec::enum_values<
+                lumalink::json::spec::enum_value<error_test_mode::automatic, "auto">,
+                lumalink::json::spec::enum_value<error_test_mode::manual, "manual">>,
+            lumalink::json::opts::name<"selected_mode">>>>;
 
 } // namespace
-
-namespace lumalink::json::traits {
-
-template <>
-struct enum_strings<error_test_mode> {
-    static constexpr std::array<enum_mapping_entry<error_test_mode>, 2> values{{
-        {"auto", error_test_mode::automatic},
-        {"manual", error_test_mode::manual},
-    }};
-};
-
-} // namespace lumalink::json::traits
 
 void test_err_01_every_supported_runtime_error_code_is_covered() {
     lumalink::json::test_support::native_fixture missing_fixture;
@@ -137,13 +129,26 @@ void test_err_01_every_supported_runtime_error_code_is_covered() {
     lumalink::json::test_support::native_fixture unknown_enum_fixture;
     unknown_enum_fixture.parse_or_fail(R"("bogus")");
     lumalink::json::test_support::assert_expected_error(
-        lumalink::json::deserialize<error_test_mode, lumalink::json::spec::enum_string<error_test_mode>>(
+        lumalink::json::deserialize<
+            error_test_mode,
+            lumalink::json::spec::enum_string<
+                error_test_mode,
+                lumalink::json::spec::enum_values<
+                    lumalink::json::spec::enum_value<error_test_mode::automatic, "auto">,
+                    lumalink::json::spec::enum_value<error_test_mode::manual, "manual">>>>(
             unknown_enum_fixture.root()),
         lumalink::json::error_code::enum_string_unknown);
 
     JsonDocument encoded;
     lumalink::json::test_support::assert_expected_error(
-        lumalink::json::serialize<lumalink::json::spec::enum_string<error_test_mode>>(error_test_mode::orphan, encoded),
+        lumalink::json::serialize<
+            lumalink::json::spec::enum_string<
+                error_test_mode,
+                lumalink::json::spec::enum_values<
+                    lumalink::json::spec::enum_value<error_test_mode::automatic, "auto">,
+                    lumalink::json::spec::enum_value<error_test_mode::manual, "manual">>>>(
+            error_test_mode::orphan,
+            encoded),
         lumalink::json::error_code::enum_value_unmapped);
 
     lumalink::json::test_support::assert_expected_error(

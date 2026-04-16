@@ -2,7 +2,6 @@
 #include <unity.h>
 
 #include <any>
-#include <array>
 #include <charconv>
 #include <cstdint>
 #include <cstring>
@@ -63,14 +62,6 @@ struct tagged_payload_base {
     tagged_payload_kind discriminator;
 };
 
-struct project_wire_mode_codec : lumalink::json::enum_codec<project_wire_mode_codec, project_wire_mode> {
-    static constexpr std::array<lumalink::json::traits::enum_mapping_entry<project_wire_mode>, 3> values{{
-        {"standby", project_wire_mode::standby},
-        {"active", project_wire_mode::active},
-        {"maintenance", project_wire_mode::maintenance},
-    }};
-};
-
 struct tagged_counter_payload : tagged_payload_base {
     tagged_counter_payload() : tagged_payload_base(tagged_payload_kind::counter) {}
     explicit tagged_counter_payload(const int count_value)
@@ -98,7 +89,12 @@ struct tagged_endpoint_payload : tagged_payload_base {
 };
 
 using project_token_spec = lumalink::json::spec::string<>;
-using project_mode_spec = lumalink::json::spec::enum_string<project_wire_mode_codec>;
+using project_mode_spec = lumalink::json::spec::enum_string<
+    project_wire_mode,
+    lumalink::json::spec::enum_values<
+        lumalink::json::spec::enum_value<project_wire_mode::standby, "standby">,
+        lumalink::json::spec::enum_value<project_wire_mode::active, "active">,
+        lumalink::json::spec::enum_value<project_wire_mode::maintenance, "maintenance">>>;
 using project_endpoint_spec = lumalink::json::spec::object<
     lumalink::json::spec::field<"token", project_token_spec>,
     lumalink::json::spec::field<"mode", project_mode_spec>>;
@@ -595,21 +591,6 @@ void test_ext_03_custom_enum_mapping_traits_support_project_specific_enums() {
     TEST_ASSERT_EQUAL_STRING("\"active\"", serialize_document_or_fail(encoded).c_str());
 }
 
-void test_ext_03a_enum_codec_lookup_helpers_resolve_mapped_entries() {
-    const auto decoded = project_wire_mode_codec::value_from_token("active");
-    TEST_ASSERT_TRUE(decoded.has_value());
-    TEST_ASSERT_EQUAL(static_cast<int>(project_wire_mode::active), static_cast<int>(*decoded));
-
-    const auto encoded = project_wire_mode_codec::token_from_value(project_wire_mode::maintenance);
-    TEST_ASSERT_TRUE(encoded.has_value());
-    TEST_ASSERT_EQUAL_STRING("maintenance", std::string(*encoded).c_str());
-}
-
-void test_ext_03b_enum_codec_lookup_helpers_report_missing_entries() {
-    TEST_ASSERT_FALSE(project_wire_mode_codec::value_from_token("offline").has_value());
-    TEST_ASSERT_FALSE(project_wire_mode_codec::token_from_value(static_cast<project_wire_mode>(0xFF)).has_value());
-}
-
 void test_ext_04_custom_converter_failures_propagate_expected_errors() {
     lumalink::json::test_support::native_fixture decode_fixture;
     decode_fixture.parse_or_fail(R"({"token":"bad","mode":"standby"})");
@@ -733,8 +714,6 @@ void run_phase7_extensibility_tests() {
     RUN_TEST(test_ext_01b_custom_decoder_parses_indexed_color_stop_lists);
     RUN_TEST(test_ext_02_custom_encoder_specialization_supports_non_standard_sources);
     RUN_TEST(test_ext_03_custom_enum_mapping_traits_support_project_specific_enums);
-    RUN_TEST(test_ext_03a_enum_codec_lookup_helpers_resolve_mapped_entries);
-    RUN_TEST(test_ext_03b_enum_codec_lookup_helpers_report_missing_entries);
     RUN_TEST(test_ext_04_custom_converter_failures_propagate_expected_errors);
     RUN_TEST(test_ext_05_codec_wrapped_spec_supports_std_any_decode);
     RUN_TEST(test_ext_06_codec_wrapped_spec_supports_std_any_encode);

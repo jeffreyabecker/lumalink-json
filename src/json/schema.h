@@ -23,14 +23,6 @@ struct is_schema_optional_spec<spec::optional<ValueSpec>> : std::true_type {};
 template <typename Spec>
 inline constexpr bool is_schema_optional_spec_v = is_schema_optional_spec<Spec>::value;
 
-template <typename EnumOrCodec, typename = void>
-struct has_schema_enum_mapping : std::false_type {};
-
-template <typename EnumOrCodec>
-struct has_schema_enum_mapping<
-    EnumOrCodec,
-    std::void_t<decltype(detail::enum_mapping_provider<EnumOrCodec>::values())>> : std::true_type {};
-
 template <typename Codec, typename InnerSpec, typename = void>
 struct has_wrapped_codec_schema : std::false_type {};
 
@@ -98,8 +90,8 @@ struct spec_schema_contributors<spec::string<Options...>> {
     using type = schema_contributor_list_t<Options...>;
 };
 
-template <typename EnumOrCodec, typename... Options>
-struct spec_schema_contributors<spec::enum_string<EnumOrCodec, Options...>> {
+template <typename Enum, typename Values, typename... Options>
+struct spec_schema_contributors<spec::enum_string<Enum, Values, Options...>> {
     using type = schema_contributor_list_t<Options...>;
 };
 
@@ -212,10 +204,10 @@ struct protected_schema_keyword_validator<spec::string<Options...>> {
     }
 };
 
-template <typename EnumOrCodec, typename... Options>
-struct protected_schema_keyword_validator<spec::enum_string<EnumOrCodec, Options...>> {
+template <typename Enum, typename Values, typename... Options>
+struct protected_schema_keyword_validator<spec::enum_string<Enum, Values, Options...>> {
     static expected_void validate(JsonVariantConst actual_schema, JsonVariantConst baseline_schema) {
-        auto type_result = validate_protected_object_keywords<spec::enum_string<EnumOrCodec, Options...>>(
+        auto type_result = validate_protected_object_keywords<spec::enum_string<Enum, Values, Options...>>(
             actual_schema,
             baseline_schema);
         if (!type_result.has_value()) {
@@ -395,6 +387,53 @@ expected_void apply_spec_schema_contributors(JsonVariant destination) {
         return protected_schema_keyword_validator<Spec>::validate(destination.as<JsonVariantConst>(), baseline_schema.as<JsonVariantConst>());
     }
 }
+
+template <typename EnumValueSpec>
+expected_void apply_enum_value_schema_contributors(JsonVariant destination) {
+    using contributor_list = typename detail::enum_value_spec_traits<EnumValueSpec>::schema_contributors;
+
+    if constexpr (std::is_same_v<contributor_list, type_list<>>) {
+        return {};
+    } else {
+        JsonDocument baseline_document;
+        JsonVariant baseline_schema = baseline_document.to<JsonVariant>();
+        JsonObject baseline_object = baseline_schema.to<JsonObject>();
+        baseline_object["const"] = std::string(detail::enum_value_spec_traits<EnumValueSpec>::token());
+
+        auto contributor_result = schema_contributor_emitter<contributor_list>::emit(destination);
+        if (!contributor_result.has_value()) {
+            return contributor_result;
+        }
+
+        return validate_object_keyword_matches(destination.as<JsonVariantConst>(), baseline_schema.as<JsonVariantConst>(), "const");
+    }
+}
+
+template <typename EnumValueList>
+struct enum_value_one_of_emitter;
+
+template <>
+struct enum_value_one_of_emitter<type_list<>> {
+    static expected_void emit(JsonArray) {
+        return {};
+    }
+};
+
+template <typename FirstValue, typename... RestValues>
+struct enum_value_one_of_emitter<type_list<FirstValue, RestValues...>> {
+    static expected_void emit(JsonArray destination) {
+        JsonVariant alternative_schema = destination.add<JsonVariant>();
+        JsonObject alternative = alternative_schema.to<JsonObject>();
+        alternative["const"] = std::string(detail::enum_value_spec_traits<FirstValue>::token());
+
+        auto contributor_result = apply_enum_value_schema_contributors<FirstValue>(alternative_schema);
+        if (!contributor_result.has_value()) {
+            return contributor_result;
+        }
+
+        return enum_value_one_of_emitter<type_list<RestValues...>>::emit(destination);
+    }
+};
 
 template <typename InnerSpec, typename Codec>
 expected_void apply_codec_schema_enrichment(JsonVariant destination) {
@@ -603,45 +642,26 @@ struct base_schema_emitter<spec::string<Options...>> {
     }
 };
 
-template <typename EnumOrCodec, typename... Options>
-struct base_schema_emitter<spec::enum_string<EnumOrCodec, Options...>> {
+template <typename Enum, typename Values, typename... Options>
+struct base_schema_emitter<spec::enum_string<Enum, Values, Options...>> {
     static expected_void emit(JsonVariant destination) {
-        static_assert(
-            has_schema_enum_mapping<EnumOrCodec>::value,
-            "enum_string requires either json::traits::enum_strings specialization or a lumalink::json::enum_codec-derived type with values for schema generation");
-
-        using mapping_provider = detail::enum_mapping_provider<EnumOrCodec>;
+        using value_list_traits = detail::enum_value_list_traits<Values>;
 
         JsonObject schema = destination.to<JsonObject>();
         schema["type"] = "string";
 
-        bool has_titles = false;
-        for (const auto& entry : mapping_provider::values()) {
-            if (!entry.title.empty()) {
-                has_titles = true;
-                break;
-            }
-        }
-
-        if (!has_titles) {
+        if constexpr (!value_list_traits::has_schema_contributors) {
             JsonArray enum_values = schema["enum"].template to<JsonArray>();
-            for (const auto& entry : mapping_provider::values()) {
+            constexpr auto values = value_list_traits::runtime_entries();
+            for (const auto& entry : values) {
                 enum_values.add(std::string(entry.token));
             }
 
             return {};
+        } else {
+            JsonArray one_of = schema["oneOf"].template to<JsonArray>();
+            return enum_value_one_of_emitter<typename value_list_traits::value_specs>::emit(one_of);
         }
-
-        JsonArray one_of = schema["oneOf"].template to<JsonArray>();
-        for (const auto& entry : mapping_provider::values()) {
-            JsonObject alternative = one_of.add<JsonObject>();
-            alternative["const"] = std::string(entry.token);
-            if (!entry.title.empty()) {
-                alternative["title"] = std::string(entry.title);
-            }
-        }
-
-        return {};
     }
 };
 
@@ -752,6 +772,43 @@ struct base_schema_emitter<spec::optional<ValueSpec>> {
     }
 };
 
+using node_kind_schema_spec = spec::enum_string<
+    node_kind,
+    spec::enum_values<
+        spec::enum_value<node_kind::unknown, "unknown">,
+        spec::enum_value<node_kind::null_value, "null">,
+        spec::enum_value<node_kind::boolean, "boolean">,
+        spec::enum_value<node_kind::integer, "integer">,
+        spec::enum_value<node_kind::number, "number">,
+        spec::enum_value<node_kind::string, "string">,
+        spec::enum_value<node_kind::enum_string, "enum_string">,
+        spec::enum_value<node_kind::any, "any">,
+        spec::enum_value<node_kind::field, "field">,
+        spec::enum_value<node_kind::object, "object">,
+        spec::enum_value<node_kind::array_of, "array_of">,
+        spec::enum_value<node_kind::tuple, "tuple">,
+        spec::enum_value<node_kind::optional, "optional">,
+        spec::enum_value<node_kind::one_of, "one_of">>>;
+
+using error_code_schema_spec = spec::enum_string<
+    error_code,
+    spec::enum_values<
+        spec::enum_value<error_code::ok, "ok">,
+        spec::enum_value<error_code::missing_field, "missing_field">,
+        spec::enum_value<error_code::unexpected_type, "unexpected_type">,
+        spec::enum_value<error_code::array_size_mismatch, "array_size_mismatch">,
+        spec::enum_value<error_code::validation_failed, "validation_failed">,
+        spec::enum_value<error_code::value_out_of_range, "value_out_of_range">,
+        spec::enum_value<error_code::pattern_mismatch, "pattern_mismatch">,
+        spec::enum_value<error_code::enum_string_unknown, "enum_string_unknown">,
+        spec::enum_value<error_code::enum_value_unmapped, "enum_value_unmapped">,
+        spec::enum_value<error_code::empty_input, "empty_input">,
+        spec::enum_value<error_code::incomplete_input, "incomplete_input">,
+        spec::enum_value<error_code::invalid_input, "invalid_input">,
+        spec::enum_value<error_code::no_memory, "no_memory">,
+        spec::enum_value<error_code::too_deep, "too_deep">,
+        spec::enum_value<error_code::not_implemented, "not_implemented">>>;
+
 template <>
 struct base_schema_emitter<spec::error_context_entry> {
     static expected_void emit(JsonVariant destination) {
@@ -761,7 +818,7 @@ struct base_schema_emitter<spec::error_context_entry> {
         JsonObject properties = schema["properties"].template to<JsonObject>();
 
         JsonVariant kind_schema = properties["kind"].template to<JsonVariant>();
-        auto kind_result = schema_emitter<spec::enum_string<node_kind>>::emit(kind_schema);
+        auto kind_result = schema_emitter<node_kind_schema_spec>::emit(kind_schema);
         if (!kind_result.has_value()) {
             return kind_result;
         }
@@ -810,7 +867,7 @@ struct base_schema_emitter<spec::error> {
         JsonObject properties = schema["properties"].template to<JsonObject>();
 
         JsonVariant code_schema = properties["code"].template to<JsonVariant>();
-        auto code_result = schema_emitter<spec::enum_string<error_code>>::emit(code_schema);
+        auto code_result = schema_emitter<error_code_schema_spec>::emit(code_schema);
         if (!code_result.has_value()) {
             return code_result;
         }

@@ -9,7 +9,7 @@ The shipped v1 node surface maps to the following C++ categories.
 | `spec::integer<>` | any integral type except `bool` |
 | `spec::number<>` | any floating-point type |
 | `spec::string<>` | `std::string`, `std::string_view`, `const char*` |
-| `spec::enum_string<E>` | enum `E` with a `json::enum_codec` type, or `json::traits::enum_strings<E>` for legacy compatibility |
+| `spec::enum_string<E, Values>` | enum `E` with an inline `spec::enum_values<...>` declaration |
 | `spec::any<>` | `JsonVariantConst` |
 | `spec::with_codec<InnerSpec, Codec>` | any `T` that `Codec` explicitly supports |
 | `spec::object<...>` | aggregate class/struct models, or models with `json::traits::object_fields<Model>` |
@@ -76,15 +76,12 @@ enum class mode : unsigned char {
     maintenance,
 };
 
-struct mode_codec : lumalink::json::enum_codec<mode_codec, mode> {
-    static constexpr std::array<lumalink::json::traits::enum_mapping_entry<mode>, 3> values{{
-        {"standby", mode::standby},
-        {"active", mode::active},
-        {"maintenance", mode::maintenance},
-    }};
-};
-
-using mode_spec = lumalink::json::spec::enum_string<mode_codec>;
+using mode_spec = lumalink::json::spec::enum_string<
+    mode,
+    lumalink::json::spec::enum_values<
+        lumalink::json::spec::enum_value<mode::standby, "standby">,
+        lumalink::json::spec::enum_value<mode::active, "active">,
+        lumalink::json::spec::enum_value<mode::maintenance, "maintenance">>>;
 
 auto decoded = lumalink::json::deserialize<mode, mode_spec>(R"("active")");
 
@@ -92,9 +89,7 @@ JsonDocument encoded;
 lumalink::json::serialize<mode_spec>(mode::maintenance, encoded);
 ```
 
-This is the preferred authoring path because it keeps the string mapping next to a concrete codec type in user code rather than requiring a specialization in `lumalink::json::traits`.
-
-`spec::enum_string<mode>` with `json::traits::enum_strings<mode>` remains available for legacy compatibility, but new bindings should prefer a dedicated codec type.
+This keeps the wire tokens and any per-value schema annotations directly in the spec graph.
 
 ## Any
 

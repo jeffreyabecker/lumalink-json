@@ -150,6 +150,43 @@ struct is_std_tuple<std::tuple<Values...>> : std::true_type {};
 template <typename T>
 inline constexpr bool is_std_tuple_v = is_std_tuple<remove_cvref_t<T>>::value;
 
+using node_kind_runtime_spec = spec::enum_string<
+    node_kind,
+    spec::enum_values<
+        spec::enum_value<node_kind::unknown, "unknown">,
+        spec::enum_value<node_kind::null_value, "null">,
+        spec::enum_value<node_kind::boolean, "boolean">,
+        spec::enum_value<node_kind::integer, "integer">,
+        spec::enum_value<node_kind::number, "number">,
+        spec::enum_value<node_kind::string, "string">,
+        spec::enum_value<node_kind::enum_string, "enum_string">,
+        spec::enum_value<node_kind::any, "any">,
+        spec::enum_value<node_kind::field, "field">,
+        spec::enum_value<node_kind::object, "object">,
+        spec::enum_value<node_kind::array_of, "array_of">,
+        spec::enum_value<node_kind::tuple, "tuple">,
+        spec::enum_value<node_kind::optional, "optional">,
+        spec::enum_value<node_kind::one_of, "one_of">>>;
+
+using error_code_runtime_spec = spec::enum_string<
+    error_code,
+    spec::enum_values<
+        spec::enum_value<error_code::ok, "ok">,
+        spec::enum_value<error_code::missing_field, "missing_field">,
+        spec::enum_value<error_code::unexpected_type, "unexpected_type">,
+        spec::enum_value<error_code::array_size_mismatch, "array_size_mismatch">,
+        spec::enum_value<error_code::validation_failed, "validation_failed">,
+        spec::enum_value<error_code::value_out_of_range, "value_out_of_range">,
+        spec::enum_value<error_code::pattern_mismatch, "pattern_mismatch">,
+        spec::enum_value<error_code::enum_string_unknown, "enum_string_unknown">,
+        spec::enum_value<error_code::enum_value_unmapped, "enum_value_unmapped">,
+        spec::enum_value<error_code::empty_input, "empty_input">,
+        spec::enum_value<error_code::incomplete_input, "incomplete_input">,
+        spec::enum_value<error_code::invalid_input, "invalid_input">,
+        spec::enum_value<error_code::no_memory, "no_memory">,
+        spec::enum_value<error_code::too_deep, "too_deep">,
+        spec::enum_value<error_code::not_implemented, "not_implemented">>>;
+
 template <typename T, typename = void>
 struct is_append_container : std::false_type {};
 
@@ -560,7 +597,7 @@ struct decoder<spec::error_context_entry, error_context_entry> {
             return std::unexpected(kind_token.error());
         }
 
-        auto kind = detail::decode_enum_token<node_kind>(
+        auto kind = detail::decode_enum_token<node_kind, typename detail::node_kind_runtime_spec::value_list>(
             *kind_token,
             state.context,
             detail::spec_descriptor<spec::error_context_entry>::kind,
@@ -594,7 +631,7 @@ struct encoder<spec::error_context_entry, error_context_entry> {
     static expected_void encode(const error_context_entry& value, JsonVariant destination, const encode_state& state) {
         JsonObject object = destination.to<JsonObject>();
 
-        auto kind_token = detail::encode_enum_value<node_kind>(
+        auto kind_token = detail::encode_enum_value<node_kind, typename detail::node_kind_runtime_spec::value_list>(
             value.kind,
             state.context,
             detail::spec_descriptor<spec::error_context_entry>::kind,
@@ -690,7 +727,7 @@ struct decoder<spec::error, error> {
             return std::unexpected(code_token.error());
         }
 
-        auto code = detail::decode_enum_token<error_code>(
+        auto code = detail::decode_enum_token<error_code, typename detail::error_code_runtime_spec::value_list>(
             *code_token,
             state.context,
             detail::spec_descriptor<spec::error>::kind,
@@ -732,7 +769,7 @@ struct encoder<spec::error, error> {
     static expected_void encode(const error& value, JsonVariant destination, const encode_state& state) {
         JsonObject object = destination.to<JsonObject>();
 
-        auto code_token = detail::encode_enum_value<error_code>(
+        auto code_token = detail::encode_enum_value<error_code, typename detail::error_code_runtime_spec::value_list>(
             value.code,
             state.context,
             detail::spec_descriptor<spec::error>::kind,

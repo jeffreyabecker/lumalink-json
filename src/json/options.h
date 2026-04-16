@@ -71,6 +71,28 @@ struct schema {
 
 namespace lumalink::json::schema_meta {
 
+template <fixed_string Key, bool Value>
+struct vendor {
+    static_assert(Key.view().starts_with("x-"), "schema_meta::vendor keys must start with 'x-'");
+
+    static expected_void apply(JsonVariant schema) {
+        JsonObject schema_object = schema.as<JsonObject>();
+        schema_object[Key.value] = Value;
+        return {};
+    }
+};
+
+template <fixed_string Key, fixed_string Value>
+struct vendor_string {
+    static_assert(Key.view().starts_with("x-"), "schema_meta::vendor_string keys must start with 'x-'");
+
+    static expected_void apply(JsonVariant schema) {
+        JsonObject schema_object = schema.as<JsonObject>();
+        schema_object[Key.value] = std::string(Value.view());
+        return {};
+    }
+};
+
 template <fixed_string Title>
 struct title {
     static expected_void apply(JsonVariant schema) {

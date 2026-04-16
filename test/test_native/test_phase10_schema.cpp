@@ -1,7 +1,6 @@
 #include <ArduinoJson.h>
 #include <unity.h>
 
-#include <array>
 #include <string>
 #include <string_view>
 
@@ -17,26 +16,10 @@ enum class schema_mode : unsigned char {
     disabled,
 };
 
-struct schema_mode_codec : lumalink::json::enum_codec<schema_mode_codec, schema_mode> {
-    static constexpr std::array<lumalink::json::traits::enum_mapping_entry<schema_mode>, 3> values{{
-        {"auto", schema_mode::automatic},
-        {"manual", schema_mode::manual},
-        {"disabled", schema_mode::disabled},
-    }};
-};
-
-enum class titled_country_code : unsigned char {
+enum class country_code : unsigned char {
     us,
     ca,
     mx,
-};
-
-struct titled_country_code_codec : lumalink::json::enum_codec<titled_country_code_codec, titled_country_code> {
-    static constexpr std::array<lumalink::json::traits::enum_mapping_entry<titled_country_code>, 3> values{{
-        {"US", titled_country_code::us, "United States"},
-        {"CA", titled_country_code::ca, "Canada"},
-        {"MX", titled_country_code::mx, "Mexico"},
-    }};
 };
 
 constexpr bool is_uppercase_schema_value(const std::string_view value) {
@@ -67,8 +50,30 @@ using tuple_schema_spec = lumalink::json::spec::tuple<
     lumalink::json::spec::boolean<>>;
 using one_of_schema_spec =
     lumalink::json::spec::one_of<lumalink::json::spec::integer<>, lumalink::json::spec::string<>>;
-using enum_schema_spec = lumalink::json::spec::enum_string<schema_mode_codec>;
-using titled_enum_schema_spec = lumalink::json::spec::enum_string<titled_country_code_codec>;
+using enum_schema_spec = lumalink::json::spec::enum_string<
+    schema_mode,
+    lumalink::json::spec::enum_values<
+        lumalink::json::spec::enum_value<schema_mode::automatic, "auto">,
+        lumalink::json::spec::enum_value<schema_mode::manual, "manual">,
+        lumalink::json::spec::enum_value<schema_mode::disabled, "disabled">>>;
+using rich_enum_schema_spec = lumalink::json::spec::enum_string<
+    country_code,
+    lumalink::json::spec::enum_values<
+        lumalink::json::spec::enum_value<
+            country_code::us,
+            "US",
+            lumalink::json::schema_meta::title<"United States">,
+            lumalink::json::schema_meta::vendor_string<"x-ui-icon", "flag-us">>,
+        lumalink::json::spec::enum_value<
+            country_code::ca,
+            "CA",
+            lumalink::json::schema_meta::title<"Canada">,
+            lumalink::json::schema_meta::vendor_string<"x-ui-icon", "flag-ca">>,
+        lumalink::json::spec::enum_value<
+            country_code::mx,
+            "MX",
+            lumalink::json::schema_meta::title<"Mexico">,
+            lumalink::json::schema_meta::vendor_string<"x-ui-icon", "flag-mx">>>>;
 using bounded_integer_schema_spec = lumalink::json::spec::integer<lumalink::json::opts::min_max_value<10, 20>>;
 using patterned_string_schema_spec =
     lumalink::json::spec::string<lumalink::json::opts::pattern<is_uppercase_schema_value, "^[A-Z]+$">>;
@@ -163,6 +168,9 @@ using annotated_integer_schema_spec = lumalink::json::spec::integer<
     lumalink::json::opts::schema<lumalink::json::schema_meta::title<"Device Id">>,
     lumalink::json::opts::schema<lumalink::json::schema_meta::description<"Stable device identifier">>,
     lumalink::json::opts::schema<lumalink::json::schema_meta::format<"uint32">>>;
+
+using vendor_extended_integer_schema_spec = lumalink::json::spec::integer<
+    lumalink::json::opts::schema<lumalink::json::schema_meta::vendor<"x-acme-widget", true>>>;
 
 using field_annotated_object_schema_spec = lumalink::json::spec::object<
     lumalink::json::spec::field<
@@ -270,13 +278,13 @@ void test_sch_04_enum_string_mappings_emit_enum_token_arrays() {
         serialize_schema_or_fail(schema).c_str());
 }
 
-void test_sch_04b_titled_enum_string_mappings_emit_one_of_const_title_entries() {
+void test_sch_04b_rich_enum_string_values_emit_one_of_const_and_annotations() {
     JsonDocument schema;
     lumalink::json::test_support::assert_expected_success(
-        lumalink::json::generate_schema<titled_enum_schema_spec>(schema));
+        lumalink::json::generate_schema<rich_enum_schema_spec>(schema));
 
     TEST_ASSERT_EQUAL_STRING(
-        "{\"type\":\"string\",\"oneOf\":[{\"const\":\"US\",\"title\":\"United States\"},{\"const\":\"CA\",\"title\":\"Canada\"},{\"const\":\"MX\",\"title\":\"Mexico\"}]}",
+        "{\"type\":\"string\",\"oneOf\":[{\"const\":\"US\",\"title\":\"United States\",\"x-ui-icon\":\"flag-us\"},{\"const\":\"CA\",\"title\":\"Canada\",\"x-ui-icon\":\"flag-ca\"},{\"const\":\"MX\",\"title\":\"Mexico\",\"x-ui-icon\":\"flag-mx\"}]}",
         serialize_schema_or_fail(schema).c_str());
 }
 
@@ -366,6 +374,16 @@ void test_sch_11_schema_contributors_add_annotation_keywords() {
         serialize_schema_or_fail(schema).c_str());
 }
 
+void test_sch_11b_schema_contributors_add_vendor_extensions() {
+    JsonDocument schema;
+    lumalink::json::test_support::assert_expected_success(
+        lumalink::json::generate_schema<vendor_extended_integer_schema_spec>(schema));
+
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"type\":\"integer\",\"x-acme-widget\":true}",
+        serialize_schema_or_fail(schema).c_str());
+}
+
 void test_sch_12_field_schema_contributors_annotate_property_schemas() {
     JsonDocument schema;
     lumalink::json::test_support::assert_expected_success(
@@ -429,7 +447,7 @@ void run_phase10_schema_tests() {
     RUN_TEST(test_sch_02_field_and_object_emit_properties_required_and_stable_order);
     RUN_TEST(test_sch_03_optional_array_tuple_and_one_of_emit_supported_forms);
     RUN_TEST(test_sch_04_enum_string_mappings_emit_enum_token_arrays);
-    RUN_TEST(test_sch_04b_titled_enum_string_mappings_emit_one_of_const_title_entries);
+    RUN_TEST(test_sch_04b_rich_enum_string_values_emit_one_of_const_and_annotations);
     RUN_TEST(test_sch_05_supported_options_project_schema_keywords);
     RUN_TEST(test_sch_06_not_empty_projects_string_and_array_schema_keywords);
     RUN_TEST(test_sch_07_schema_generation_writes_to_caller_provided_document);
@@ -437,6 +455,7 @@ void run_phase10_schema_tests() {
     RUN_TEST(test_sch_09_codec_wrapped_specs_reuse_inner_schema_shape);
     RUN_TEST(test_sch_10_codec_wrapped_specs_may_override_schema_generation);
     RUN_TEST(test_sch_11_schema_contributors_add_annotation_keywords);
+    RUN_TEST(test_sch_11b_schema_contributors_add_vendor_extensions);
     RUN_TEST(test_sch_12_field_schema_contributors_annotate_property_schemas);
     RUN_TEST(test_sch_13_schema_contributors_apply_in_declaration_order);
     RUN_TEST(test_sch_14_codec_enrich_schema_augments_inner_schema);

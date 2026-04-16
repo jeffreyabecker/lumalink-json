@@ -1,7 +1,6 @@
 #include <ArduinoJson.h>
 #include <unity.h>
 
-#include <array>
 #include <cmath>
 #include <optional>
 #include <string>
@@ -71,7 +70,12 @@ using round_trip_collection_spec = lumalink::json::spec::object<
             lumalink::json::spec::string<>,
             lumalink::json::spec::boolean<>>>>;
 
-using round_trip_mode_spec = lumalink::json::spec::enum_string<round_trip_mode>;
+using round_trip_mode_spec = lumalink::json::spec::enum_string<
+    round_trip_mode,
+    lumalink::json::spec::enum_values<
+        lumalink::json::spec::enum_value<round_trip_mode::automatic, "auto">,
+        lumalink::json::spec::enum_value<round_trip_mode::manual, "manual">,
+        lumalink::json::spec::enum_value<round_trip_mode::disabled, "disabled">>>;
 using int_or_bool_spec =
     lumalink::json::spec::one_of<lumalink::json::spec::integer<>, lumalink::json::spec::boolean<>>;
 using int_or_number_spec =
@@ -85,7 +89,13 @@ using round_trip_validated_leaf_spec = lumalink::json::spec::object<
             lumalink::json::opts::validator_func<is_even_round_trip>>>,
     lumalink::json::spec::field<
         "mode",
-        lumalink::json::spec::enum_string<round_trip_mode, lumalink::json::opts::name<"selected_mode">>>>;
+        lumalink::json::spec::enum_string<
+            round_trip_mode,
+            lumalink::json::spec::enum_values<
+                lumalink::json::spec::enum_value<round_trip_mode::automatic, "auto">,
+                lumalink::json::spec::enum_value<round_trip_mode::manual, "manual">,
+                lumalink::json::spec::enum_value<round_trip_mode::disabled, "disabled">>,
+            lumalink::json::opts::name<"selected_mode">>>>;
 
 using round_trip_validated_envelope_spec = lumalink::json::spec::object<
     lumalink::json::spec::field<"label", lumalink::json::spec::string<>>,
@@ -116,19 +126,6 @@ std::string serialize_document_or_fail(const JsonDocument& document) {
 }
 
 } // namespace
-
-namespace lumalink::json::traits {
-
-template <>
-struct enum_strings<round_trip_mode> {
-    static constexpr std::array<enum_mapping_entry<round_trip_mode>, 3> values{{
-        {"auto", round_trip_mode::automatic},
-        {"manual", round_trip_mode::manual},
-        {"disabled", round_trip_mode::disabled},
-    }};
-};
-
-} // namespace lumalink::json::traits
 
 void test_rt_01_scalar_nodes_round_trip() {
     const auto null_result = lumalink::json::test_support::round_trip<std::nullptr_t>(

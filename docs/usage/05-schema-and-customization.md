@@ -28,9 +28,23 @@ Supported schema projections include:
 3. `array_of` `items`, `minItems`, and `maxItems`
 4. `tuple` `prefixItems`, `minItems`, and `maxItems`
 5. `optional` and `one_of` as `anyOf`
-6. `enum_string` as string `enum`, or as `oneOf` with `const` entries when enum mappings provide per-value titles
+6. `enum_string` as string `enum`, or as `oneOf` with `const` entries when enum values carry per-value schema annotations
 7. `min_max_value` as `minimum` and `maximum`
 8. `pattern` only when the option carries a schema literal
+
+Schema contributors can also attach additive metadata such as vendor extensions.
+
+```cpp
+using endpoint_spec = lumalink::json::spec::object<
+    lumalink::json::spec::field<
+        "id",
+        lumalink::json::spec::integer<
+            lumalink::json::opts::schema<
+                lumalink::json::schema_meta::vendor<"x-acme-widget", true>>>>
+>;
+```
+
+That emits the `x-acme-widget` vendor extension on the annotated node's schema object.
 
 ## Custom Decoder And Encoder Specializations
 

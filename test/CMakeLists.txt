@@ -32,7 +32,7 @@ target_compile_options(lumalink_json_tests
     PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:
             /W4
-            /EHs-
+            /EHsc
         >
         $<$<CXX_COMPILER_ID:GNU>:
             -Wall

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include <json/options.h>
 #include <json/traits.h>
 
@@ -20,9 +22,30 @@ struct number : detail::scalar_option_contract<Options...> {};
 template <typename... Options>
 struct string : detail::scalar_option_contract<Options...> {};
 
-template <typename EnumOrCodec, typename... Options>
+template <auto EnumValue, fixed_string Token, typename... Contributors>
+struct enum_value {
+    using enum_type = decltype(EnumValue);
+
+    static_assert(std::is_enum_v<enum_type>, "spec::enum_value requires an enum constant");
+
+    static constexpr enum_type value = EnumValue;
+
+    [[nodiscard]] static constexpr std::string_view token() noexcept {
+        return Token.view();
+    }
+};
+
+template <typename... Values>
+struct enum_values {
+    static_assert(sizeof...(Values) > 0U, "spec::enum_values requires at least one enum_value entry");
+};
+
+template <typename Enum, typename Values, typename... Options>
 struct enum_string : detail::scalar_option_contract<Options...> {
-    using enum_type = detail::enum_mapping_enum_t<EnumOrCodec>;
+    static_assert(std::is_enum_v<Enum>, "spec::enum_string requires an enum model type");
+
+    using enum_type = Enum;
+    using value_list = Values;
 };
 
 template <typename... Options>
@@ -79,6 +102,77 @@ struct error {};
 } // namespace lumalink::json::spec
 
 namespace lumalink::json::detail {
+
+template <typename Spec>
+struct is_enum_value_spec : std::false_type {};
+
+template <auto EnumValue, fixed_string Token, typename... Contributors>
+struct is_enum_value_spec<spec::enum_value<EnumValue, Token, Contributors...>> : std::true_type {};
+
+template <typename Spec>
+inline constexpr bool is_enum_value_spec_v = is_enum_value_spec<Spec>::value;
+
+template <typename Spec>
+struct enum_value_spec_traits;
+
+template <auto EnumValue, fixed_string Token, typename... Contributors>
+struct enum_value_spec_traits<spec::enum_value<EnumValue, Token, Contributors...>> {
+    using enum_type = decltype(EnumValue);
+    using schema_contributors = type_list<Contributors...>;
+
+    static constexpr enum_type value = EnumValue;
+    static constexpr bool has_schema_contributors = sizeof...(Contributors) > 0U;
+
+    [[nodiscard]] static constexpr std::string_view token() noexcept {
+        return Token.view();
+    }
+};
+
+template <typename Values>
+struct is_enum_value_list_spec : std::false_type {};
+
+template <typename... ValueSpecs>
+struct is_enum_value_list_spec<spec::enum_values<ValueSpecs...>> : std::bool_constant<(is_enum_value_spec_v<ValueSpecs> && ...)> {};
+
+template <typename Values>
+inline constexpr bool is_enum_value_list_spec_v = is_enum_value_list_spec<Values>::value;
+
+template <typename Enum>
+struct enum_string_mapping_entry {
+    std::string_view token{};
+    Enum value{};
+};
+
+template <typename Values>
+struct enum_value_list_traits;
+
+template <typename FirstValue, typename... RestValues>
+struct enum_value_list_traits<spec::enum_values<FirstValue, RestValues...>> {
+    using enum_type = typename enum_value_spec_traits<FirstValue>::enum_type;
+    using value_specs = type_list<FirstValue, RestValues...>;
+
+    static constexpr bool has_schema_contributors =
+        enum_value_spec_traits<FirstValue>::has_schema_contributors ||
+        (... || enum_value_spec_traits<RestValues>::has_schema_contributors);
+
+    [[nodiscard]] static constexpr std::array<enum_string_mapping_entry<enum_type>, 1U + sizeof...(RestValues)>
+    runtime_entries() noexcept {
+        return {{
+            {enum_value_spec_traits<FirstValue>::token(), enum_value_spec_traits<FirstValue>::value},
+            {enum_value_spec_traits<RestValues>::token(), enum_value_spec_traits<RestValues>::value}...
+        }};
+    }
+};
+
+template <typename Enum, typename Values, typename = void>
+struct enum_value_list_matches_enum : std::false_type {};
+
+template <typename Enum, typename Values>
+struct enum_value_list_matches_enum<Enum, Values, std::void_t<typename enum_value_list_traits<Values>::enum_type>>
+    : std::bool_constant<std::is_same_v<Enum, typename enum_value_list_traits<Values>::enum_type>> {};
+
+template <typename Enum, typename Values>
+inline constexpr bool enum_value_list_matches_enum_v = enum_value_list_matches_enum<Enum, Values>::value;
 
 template <typename Spec>
 struct spec_descriptor;
@@ -138,8 +232,13 @@ struct spec_descriptor<spec::string<Options...>> {
     using validator_option = typename first_validator_option<Options...>::type;
 };
 
-template <typename EnumOrCodec, typename... Options>
-struct spec_descriptor<spec::enum_string<EnumOrCodec, Options...>> {
+template <typename Enum, typename Values, typename... Options>
+struct spec_descriptor<spec::enum_string<Enum, Values, Options...>> {
+    static_assert(is_enum_value_list_spec_v<Values>, "spec::enum_string requires spec::enum_values<...>");
+    static_assert(
+        enum_value_list_matches_enum_v<Enum, Values>,
+        "spec::enum_string enum_values entries must all match the declared enum type");
+
     static constexpr node_kind kind = node_kind::enum_string;
     using name_option = typename first_name_option<Options...>::type;
     using min_max_value_option = typename first_min_max_value_option<Options...>::type;
@@ -147,6 +246,7 @@ struct spec_descriptor<spec::enum_string<EnumOrCodec, Options...>> {
     using pattern_option = typename first_pattern_option<Options...>::type;
     using not_empty_option = typename first_not_empty_option<Options...>::type;
     using validator_option = typename first_validator_option<Options...>::type;
+    using value_list = Values;
 };
 
 template <typename... Options>
