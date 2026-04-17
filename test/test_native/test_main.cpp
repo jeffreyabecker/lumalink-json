@@ -18,5 +18,6 @@ int main() {
     run_phase9_round_trip_tests();
     run_phase10_schema_tests();
     run_phase8_reflection_tests();
+    run_phase11_validate_tests();
     return UNITY_END();
 }

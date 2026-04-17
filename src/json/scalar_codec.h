@@ -834,4 +834,37 @@ expected_void serialize(const Source& value, JsonDocument& document, const encod
     return serialize<Spec, Source, Binding>(value, destination, options);
 }
 
+// Validate a C++ value against a spec (encode path; scratch document is discarded).
+template <typename Spec, typename Source, typename Binding = void>
+expected_void validate(const Source& value, const encode_options options = {}) {
+    JsonDocument scratch;
+    return serialize<Spec, Source, Binding>(value, scratch, options);
+}
+
+// Validate JSON against a spec (decode path; decoded value is discarded).
+template <typename Target, typename Spec, typename Binding = void>
+expected_void validate(JsonVariantConst source, const decode_options options = {}) {
+    auto result = deserialize<Target, Spec, Binding>(source, options);
+    if (!result.has_value()) return std::unexpected(result.error());
+    return {};
+}
+
+template <typename Target, typename Spec, typename Binding = void>
+expected_void validate(const JsonDocument& document, const decode_options options = {}) {
+    return validate<Target, Spec, Binding>(document.as<JsonVariantConst>(), options);
+}
+
+template <typename Target, typename Spec, typename Binding = void>
+expected_void validate(std::string_view source, JsonDocument& document, const decode_options options = {}) {
+    auto result = deserialize<Target, Spec, Binding>(source, document, options);
+    if (!result.has_value()) return std::unexpected(result.error());
+    return {};
+}
+
+template <typename Target, typename Spec, typename Binding = void>
+expected_void validate(std::string_view source, const decode_options options = {}) {
+    JsonDocument document;
+    return validate<Target, Spec, Binding>(source, document, options);
+}
+
 } // namespace lumalink::json

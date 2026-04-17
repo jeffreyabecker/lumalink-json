@@ -10,3 +10,4 @@ void run_phase7_extensibility_tests();
 void run_phase9_round_trip_tests();
 void run_phase10_schema_tests();
 void run_phase8_reflection_tests();
+void run_phase11_validate_tests();
